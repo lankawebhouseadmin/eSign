@@ -20,7 +20,7 @@
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="{{ route('myfiles') }}">
             <i class="fa fa-file"></i> <span>My Files</span>
           </a>
         </li>
