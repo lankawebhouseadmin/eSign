@@ -10,43 +10,43 @@
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
+          <a href="#">
             <i class="fa fa-user"></i> <span>Manage Accounts</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
-            <i class="far fa-address-book"></i> <span>Manage Contacts</span>
+          <a href="#">
+            <i class="fa fa-address-book"></i> <span>Manage Contacts</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
+          <a href="#">
             <i class="fa fa-file"></i> <span>My Files</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
+          <a href="#">
             <i class="fa fa-history"></i> <span>Transaction History</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
-            <i class="fas fa-sign-in"></i> <span>Sign My Document</span>
+          <a href="#">
+            <i class="fa fa-pencil-square-o"></i> <span>Sign My Document</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
-            <i class="fa fa-percent"></i> <span>Get It Signed!</span>
+          <a href="#">
+            <i class="fa fa-pencil-square-o"></i> <span>Get It Signed!</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
-            <i class="fa fa-percent"></i> <span>Manage Access</span>
+          <a href="#">
+            <i class="fa fa-universal-access"></i> <span>Manage Access</span>
           </a>
         </li>
         <li>
-          <a href="{{ route('home') }}">
-            <i class="fa fa-percent"></i> <span>Messages</span>
+          <a href="#">
+            <i class="fa fa-envelope"></i> <span>Messages</span>
           </a>
         </li>
       </ul>
