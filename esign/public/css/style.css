@@ -1,8 +1,8 @@
 .skin-purple .main-header .navbar {
-    background-color: #627CB8;
+    background-color: #0287d2;
 }
 .skin-purple .main-header .logo {
-    background-color: #4cb1e8;
+    background-color: #03a9f5;
 }
 .skin-purple .main-header .logo:hover{
     background-color: #3176e3;
@@ -811,5 +811,5 @@
 }
 .width100per {
     width: 100%;
-    background-color: rgba(22, 155, 213, 1);
+    background-color: #03a9f5;
 }

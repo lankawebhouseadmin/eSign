@@ -8,31 +8,49 @@
             <div class="col-md-2">
                 <button type="button" class="btn btn-block btn-primary">Take a Tour</button>
             </div>
-        <div class="col-md-6">
-            <div class="box box-solid">
-                <div class="box-header with-border" style="padding: 10px">
-                    {{--<i class="fa fa-text-width"></i>--}}
+            <div class="col-md-6">
+                <div class="box box-solid">
+                    <div class="box-header with-border" style="padding: 10px;">
+                        {{--<i class="fa fa-text-width"></i>--}}
 
-                    <h3 class="box-title">At a Glance</h3>
+                        <h3 class="box-title" style="float: left">At a Glance</h3>
+                        <div class="box-header" style="float: right; font-size: 18px">
+                            <h5 style="float: right ; border-left: solid">Dismiss All</h5>
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <blockquote>
+                            <p>Transaction Updates</p>
+                            <small style="float: left">sample@example.com <cite title="Source Title">Source Title</cite>
+                            </small>
+                            <div class="box-body">
+                                <h5 style="float: right; border-left: solid; margin-top: -9px;">Dismiss</h5>
+                            </div>
+                        </blockquote>
+                    </div>
+                    <div class="box-body">
+                        <blockquote>
+                            <p>Message Notification</p>
+                            <small>sample@example.com<cite title="Source Title">Source Title</cite></small>
+                        </blockquote>
+                    </div>
+                    <!-- /.box-body -->
                 </div>
-                <!-- /.box-header -->
-                <div class="box-body">
-                    <blockquote>
-                        <p>Transaction Updates</p>
-                        <small>sample@example.com <cite title="Source Title">Source Title</cite></small>
-                    </blockquote>
-                </div>
-                <div class="box-body">
-                    <blockquote>
-                        <p>Message Notification</p>
-                        <small>sample@example.com<cite title="Source Title">Source Title</cite></small>
-                    </blockquote>
-                </div>
-                <!-- /.box-body -->
+                <!-- /.box -->
             </div>
-            <!-- /.box -->
+            <div class="col-md-4">
+                <div class="box box-solid">
+                    <div class="box-header with-border text-center" style="padding: 10px">
+                        <img class="img" src="assets/image/explation.png">
+                        <p>Continue where you Left off?</p>
+                        <button type="button" class="btn btn-default" style="border-radius: 14px; width: 80px;">yes</button>
+                        <button  type="button" class="btn btn-default" style="border-radius: 14px; width: 80px;      margin-left: 6px">No</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        </div>
+            <div class="clearfix"></div>
         <div class="row">
             <div class="col-md-12">
                 <div class="box box-default">
@@ -91,6 +109,7 @@
                         <div class="walk-me-btn-container">
                             <div class="walk-btn-box">
                                 <img class="img" src="assets/image/message.png"> New Messages
+
                             </div>
                         </div>
 
@@ -131,13 +150,14 @@
                                 <button class="btn btn-primary width100per">Transaction History</button>
                             </div>
                             <div class="col-lg-6">
-                                <button class="btn btn-primary width100per">Messages</button>
+                                <button class="btn btn-primary width100per" >Messages </button>
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+             </div>
         </div>
     </div>
 @stop
