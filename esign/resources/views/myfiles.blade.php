@@ -3,170 +3,61 @@
 @section('content')
     <div class="content-wrapper">
         <div class="container-fluid">
-            <section class="header-title-container">
+            <section class="header-my-files">
                 <h3 class="header-text">My Files</h3>
             </section>
-        <!-- Content Header (Page header) -->
-        <div class="row">
-            <div class="col-md-3">
-                <button type="button" class="btn btn-block btn-primary btn-common">Take a Tour</button>
-            </div>
-            {{--<div class="col-md-6">--}}
-                {{--<div class="box box-solid">--}}
-                    {{--<div class="box-header with-border">--}}
-                        {{--<div class="pull-left">--}}
-                            {{--<h3 class="box-title">At a Glance</h3>--}}
-                        {{--</div>--}}
-                        {{--<div class="pull-right">--}}
-                            {{--<div class="dismiss-btn">Dismiss All</div>--}}
-                        {{--</div>--}}
-                        {{--<div class="clearfix"></div>--}}
-                    {{--</div>--}}
-                    {{--<!-- /.box-header -->--}}
-                    {{--<div>--}}
-                        {{--<!-- transaction notifications -->--}}
-                        {{--<div class="notification-wrapper line-blue">--}}
-                            {{--<div class="notification-title-text">Transaction Updates</div>--}}
-                            {{--<div>--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">sample@example.com: Signed: 01/01/2018</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                            {{--<div class="mt-5">--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">sample@example.com: Signed: 01/02/2018</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                        {{--</div>--}}
-
-                        {{--Message notification--}}
-                        {{--<div class="notification-wrapper line-yellow">--}}
-                            {{--<div class="notification-title-text">Message Notification</div>--}}
-                            {{--<div>--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">sample@example.com: Sent you message</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">View</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                            {{--<div class="mt-5">--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">sample@example.com: Replied</div>--}}
-                                {{--</div>--}}
-
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">View</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                        {{--</div>--}}
-
-                        {{--Account notification / Pormpts--}}
-                        {{--<div class="notification-wrapper line-blue">--}}
-                            {{--<div class="notification-title-text">Account notification / Pormpts</div>--}}
-                            {{--<div>--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">Updated billing information needed</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">View</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                            {{--<div class="mt-5">--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">3 Days</div>--}}
-                                {{--</div>--}}
-
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">View</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                            {{--<div class="mt-5">--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">Create Profile</div>--}}
-                                {{--</div>--}}
-
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">View</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                        {{--</div>--}}
-
-                        {{--Paused--}}
-                        {{--<div class="notification-wrapper line-yellow">--}}
-                            {{--<div class="notification-title-text">Paused</div>--}}
-                            {{--<div>--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">sample@example.com: Sent you message</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">Complete</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                            {{--<div class="mt-5">--}}
-                                {{--<div class="pull-left">--}}
-                                    {{--<div class="notification-text">sample@example.com: Replied</div>--}}
-                                {{--</div>--}}
-
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="dismiss-btn">Dismiss</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="pull-right">--}}
-                                    {{--<div class="view-btn">Complete</div>--}}
-                                {{--</div>--}}
-                                {{--<div class="clearfix"></div>--}}
-                            {{--</div>--}}
-                        {{--</div>--}}
-                    {{--</div>--}}
-                {{--</div>--}}
-                {{--<!-- /.box -->--}}
-            {{--</div>--}}
-            <div class="col-md-9">
-                <div class="box box-solid">
-                    <div class="box-header with-border text-center" style="padding: 10px">
-                        <img class="img" src="assets/image/explation.png">
-                        <p>Continue where you Left off?</p>
-                        <button type="button" class="btn btn-default" style="border-radius: 14px; width: 80px;">yes</button>
-                        <button  type="button" class="btn btn-default" style="border-radius: 14px; width: 80px;      margin-left: 6px">No</button>
+            <div class="position-relative">
+                <div class="file-menu">
+                    <ul class="file-menu-list">
+                        <li>
+                            <a href="#" class="active" title="Uploads">Uploads</a>
+                        </li>
+                        <li>
+                            <a href="#" title="Paused">Paused</a>
+                        </li>
+                        <li>
+                            <a href="#" title="My Signed Documents">My Signed Documents</a>
+                        </li>
+                        <li>
+                            <a href="#" title="History">History</a>
+                        </li>
+                        <li>
+                            <a href="#" title="Signed">Signed</a>
+                        </li>
+                        <li>
+                            <a href="#" title="Deleted">Deleted</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="file-content">
+                    <div class="breadcrumb-wrapper">
+                        <ol class="breadcrumb" style="background: transparent;">
+                            <li><a href="#">My Files</a></li>
+                            <li class="active">Uploads</li>
+                        </ol>
+                    </div>
+                    <div class="file-container">
+                        {{--Files contect will be go here--}}
+                        <div class="empty-folder">
+                            This folder is empty
+                        </div>
                     </div>
                 </div>
+                <div class="file-tool">
+                    <ul class="file-tool-list">
+                        <li>
+                            <a href="#" title="Upload Files"><i class="fa fa-upload mr-5" aria-hidden="true"></i>Upload Files</a>
+                        </li>
+                        <li>
+                            <a href="#" title="Upload Folder"><i class="fa fa-folder-o mr-5" aria-hidden="true"></i>Upload Folder</a>
+                        </li>
+                        <li>
+                            <a href="#" title="New Folder"><i class="fa fa-folder-o mr-5" aria-hidden="true"></i>New Folder</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-            <div class="clearfix"></div>
 
-        </div>
     </div>
 @stop
 

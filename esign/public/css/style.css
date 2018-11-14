@@ -121,4 +121,90 @@
     color: #525252;
     font-size: 22px;
 }
-
+.file-menu {
+    position: fixed;
+    border-right: 1px solid #e0e0e0;
+    width: 220px;
+    top: 0;
+    bottom: 0;
+}
+.file-tool {
+    position: fixed;
+    border-left: 1px solid #e0e0e0;
+    width: 220px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffffff;
+}
+.file-content {
+    margin: 0 200px 0 220px;
+    background: #fff;
+    padding: 15px;
+    min-height: 650px;
+}
+.position-relative {
+    position: relative;
+}
+.file-title-text {
+    padding: 15px 10px;
+    font-size: 18px;
+}
+.file-menu-list {
+    margin: 125px 0 0 0;
+    padding: 0px 10px;
+    list-style: none;
+}
+.file-tool-list {
+    margin: 90px 0 0 0;
+    padding: 0px 20px;
+    list-style: none;
+}
+.file-menu-list li a {
+    padding: 5px 0;
+    color: #525252;
+    display: block;
+    font-size: 16px;
+}
+.file-menu-list li a:hover {
+    color: #0287d2;
+    font-weight: normal;
+}
+.file-menu-list li a.active {
+    color: #0287d2;
+    font-weight: 600!important;
+}
+.file-tool-list li a {
+    padding: 5px 0;
+    color: #0287d2;
+    display: block;
+    font-size: 16px;
+}
+.header-my-files {
+    position: fixed;
+    top: 50px;
+    z-index: 1;
+}
+.breadcrumb-wrapper {
+    background: transparent;
+    position: fixed;
+    top: 60px;
+}
+.breadcrumb {
+    background: transparent;
+    margin-bottom: 0;
+}
+.mr-5 {
+    margin-right: 5px;
+}
+.breadcrumb>li {
+    font-size: 16px;
+}
+.file-container {
+    margin-top: 50px;
+}
+.empty-folder {
+    margin-top: 30%;
+    text-align: center;
+    font-size: 18px;
+}
