@@ -1,10 +1,24 @@
 
+body, html {
+    background-color: #FFFFFF;
+    height: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 300;
+    font-size: 12px;
+}
+/*bootstrap overwrite*/
 
-body{
-    background-color: #f7f9fb;
-    overflow-x: hidden;
+.container-fluid {
+    padding: 0;
 }
 
+/*end*/
+
+.main-container {
+    width: 1450px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
 
 .header{
     border-bottom: 1px solid #d0d0d0;
@@ -28,18 +42,28 @@ body{
 .navbar-toggler {
     background-color: #d0d0d0;
 }
-.brand{
+.brand {
     position: absolute;
     left: 50px;
+    top: 15px;
 }
 .brand img{
-    height: 60px;
+    height: 55px;
     width: auto;
 }
-.compliant-detail h2{
+.welcome-box h2{
     color: #242422;
-    font-size: 36px;
-
+    font-size: 55px;
+    font-weight: 300;
+}
+.welcome-box-margin {
+    margin-bottom: 100px;
+}
+.main-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 300;
+    text-transform: capitalize;
 }
 .btn-blue{
     background-color: #4f6df5;
@@ -51,14 +75,12 @@ body{
     border-color: #007bff;
     color: #ffffff;
 }
-.btn-red:hover{
-    background-color: #bc2e2f;
-    color: #fff;
+.btn-red:hover {
+    background-color: #bc2e2f!important;
+    border: 1px solid #bc2e2f!important;
+    box-shadow: 4px 8px 10px rgba(188,46,47,0.3)!important;
 }
-
 .access-button {
-    padding-left: 20px;
-    padding-right: 20px;
     color: #242422;
     border: 1px solid #cbcbcb;
 }
@@ -74,6 +96,10 @@ body{
     color: #fff;
     box-shadow: 4px 8px 10px #f1d3d3;
 }
+.title-text {
+    font-size: 36px;
+    font-weight: 300!important;
+}
 .glance-main .access-button{
     min-width: 150px;
 }
@@ -83,11 +109,17 @@ body{
 .glance-main h5{
     font-weight: normal;
 }
+.text-details {
+    color: #4a4a4a;
+    font-size: 18px;
+    font-weight: 300;
+}
 .walk-container{
-    width: 200px;
+    width: auto;
     height: 240px;
     border: 1px solid #cbcbcb;
     border-radius: 5px;
+    margin: 0 20px 20px 0;
 }
 .walk-container .my-5{
     max-height: 45px;
@@ -98,6 +130,10 @@ body{
     width: 100px;
     margin: auto;
     border-radius: 50px;
+}
+.walk-me-box-container .box-details {
+    width: 20%;
+    float: left;
 }
 .contact-main .btn-blue{
     padding: 12px 25px;
@@ -110,27 +146,25 @@ body{
     border-color: #718bff;
     color: #ffffff;
 }
- .icon-head{
+.icon-head{
     height: 35px;;
 }
 .quick-head{
     background-color: #f2f4fd;
-    height: 160px;
+    padding: 20px 0;
 }
 .quick-main {
     border: 1px solid #efefef;
     padding: 20px 30px;
     border-radius: 8px;
-    position: absolute;
-    width: 100%;
-    background-color: #f7f9fb;
+    background-color: #FFFFFF;
+    margin-top: -100px;
 }
 .glance-sub{
-    border: 1px solid #efefef;
-    padding: 15px;
+    padding: 20px 15px;
     margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0px 1px 6px #f6f8fe;
+    border-radius: 3px;
+    box-shadow: 0px 1px 6px rgba(0,0,0,0.2);
 }
 .bg-style{
     background-position: center;
@@ -198,6 +232,48 @@ body{
 .logout{
     color: #4f6df5;
     border-color: #4f6df5;
+    padding: 4px 20px;
+    line-height: 21px;
+}
+.font-blue-light-14 {
+    font-weight: 200;
+    font-size: 14px;
+}
+.time-container {
+    width: 220px;
+    vertical-align: bottom;
+    line-height: 15px;
+}
+.welcome-box {
+    width: 500px;
+    margin:auto;
+}
+.text-20-light {
+    font-size: 20px;
+    font-weight: 300;
+}
+.btn-notification-wrapper {
+    float: right;
+}
+.text-notification-wrapper {
+    float: left;
+    margin-top: 10px;
+}
+@media (max-width: 1450px) {
+    .main-container {
+        width: 100%;
+    }
+    .main-container .row {
+        margin-right: auto;
+        margin-left: auto;
+    }
+    .brand {
+        left: 30px;
+    }
+    .meeting-responsive {
+        height: auto;
+        width: 100%;
+    }
 }
 @media (min-width: 992px) {
     .glance-buttons{
@@ -211,12 +287,46 @@ body{
     .quick-buttons .access-button{
         margin: 10px;
     }
-    .compliant-detail h2{
+    .welcome-box {
+        width: 100%;
+    }
+    .welcome-box h2{
         margin-top: 20px;
+    }
+    .walk-me-box-container .box-details {
+        width: 25%;
     }
 }
 @media (max-width: 767px) {
-    .compliant-detail h2{
-        margin-top: 30px;
+    .welcome-box h2 {
+        margin-top: 50px;
+    }
+    .meeting-wrapper {
+        margin-top: 40px;
+        border-top: 1px solid #bdd5e9;
+    }
+    .quick-main {
+        padding: 10px;
+    }
+    .walk-me-box-container .box-details {
+        width: 33.3333%;
+    }
+}
+@media (max-width: 568px) {
+    .header {
+        padding: 10px 0 8px 0;
+    }
+    .quick-main .access-button {
+        margin: 10px 0;
+        width: 100%;
+    }
+    .btn-notification-wrapper, .text-notification-wrapper {
+        clear: both;
+        width: 100%;
+        margin-top: 10px;
+        text-align: center;
+    }
+    .walk-me-box-container .box-details {
+        width: 100%;
     }
 }
