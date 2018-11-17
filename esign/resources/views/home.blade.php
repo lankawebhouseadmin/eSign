@@ -16,7 +16,13 @@
 <body>
     <div class="wrapper ">
         <div class="text-right px-3 pt-3">
-            <a href="#" class="btn access-button main-btn logout font-blue-light-14">Log Out</a>
+            <a href="{{ route('logout') }}"
+               onclick="event.preventDefault();
+               document.getElementById('logout-form').submit();"
+               class="btn access-button main-btn logout font-blue-light-14">Log Out</a>
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                {{ csrf_field() }}
+            </form>
         </div>
         <div class="header text-right">
             <div class="list-inline">
@@ -223,8 +229,9 @@
             </div>
 
         </div><!-- EO container-fluid -->
-        <!-- EO CONTAINER-->
-    </div><!-- EO MAIN DIV -->
+            <!-- EO CONTAINER-->
+        </div><!-- EO MAIN DIV -->
+    </div>
 
     <!-- jQuery 3 -->
     <script src="{{ asset('js/libs/jquery-3.2.1.slim.min.js') }}"></script>
