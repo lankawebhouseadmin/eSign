@@ -65,6 +65,14 @@ body, html {
     font-weight: 300;
     text-transform: capitalize;
 }
+.main-btn:hover {
+    -webkit-transition: transform 0.3s ease-in-out;
+    -moz-transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out;
+    transform: translate3d(0, -3px, 0);
+    -webkit-transform: translate3d(0, -3px, 0);
+    -moz-transform: translate3d(0, -3px, 0);
+}
 .btn-blue{
     background-color: #4f6df5;
     color: #ffffff;
