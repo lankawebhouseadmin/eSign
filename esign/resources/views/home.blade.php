@@ -56,9 +56,10 @@
             <div class="brand">
                 <a href="#"><img class="mt-3" src="{{ asset('assets/image/esign-logo.png') }}"></a>
             </div>
-            <div>
-                <form class="search-button">
-                    <input type="search">
+            <div class="search-box">
+                <form>
+                    <input class="form-control" type="search" placeholder="Search...">
+                    <input type="submit" name="submit" class="d-none">
                 </form>
             </div>
 
