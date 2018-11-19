@@ -26,9 +26,25 @@
         </div>
         <div class="header text-right">
             <div class="list-inline">
+                {{--<div class="list-inline-item">--}}
+                    {{--<img class="icon-head"  src="{{ asset('assets/image/home-icon.png') }}">--}}
+                    {{--<img class="ml-3 icon-head"  src="{{ asset('assets/image/us.png') }}">--}}
+                {{--</div>--}}
                 <div class="list-inline-item">
-                    <img class="icon-head"  src="{{ asset('assets/image/home-icon.png') }}">
-                    <img class="ml-3 icon-head"  src="{{ asset('assets/image/us.png') }}">
+                    {{--HOME MENU--}}
+                    <div class="menu-wrapper">
+                        <a href="#" class="circle">
+                            <img class="icon-head" src="{{ asset('assets/image/home.png') }}">
+                        </a>
+                        <div class="menu-text">Home</div>
+                    </div>
+                    {{--PROFILE MENU--}}
+                    <div class="menu-wrapper">
+                        <a href="#" class="circle">
+                            <img class="icon-head" src="{{ asset('assets/image/profile.png') }}">
+                        </a>
+                        <div class="menu-text">Profile</div>
+                    </div>
                 </div>
                 <div class="list-inline-item time-container">
                     <span class="mr-3 font-blue-light-14">01/01/2018 12:00 PM</span>
@@ -39,6 +55,11 @@
         <div class="container-fluid position-relative">
             <div class="brand">
                 <a href="#"><img class="mt-3" src="{{ asset('assets/image/esign-logo.png') }}"></a>
+            </div>
+            <div>
+                <form class="search-button">
+                    <input type="search">
+                </form>
             </div>
 
             <div class="main-container welcome-box-margin">
