@@ -25,27 +25,90 @@
             {{--</div>--}}
             <div class="list-inline-item">
                 {{--HOME MENU--}}
-                <div class="menu-wrapper">
-                    <a href="{{ route('home') }}" class="circle">
-                        <img class="icon-head" src="{{ asset('assets/image/home.png') }}">
-                    </a>
-                    <div class="menu-text">Home</div>
-                </div>
 
-                {{--HOME MENU--}}
-                <div class="menu-wrapper">
-                    <a href="{{ route('myfiles') }}" class="circle">
-                        <img class="icon-head" src="{{ asset('assets/image/home.png') }}">
-                    </a>
-                    <div class="menu-text">My Files</div>
                 </div>
-                {{--PROFILE MENU--}}
                 <div class="menu-wrapper">
                     <a href="#" class="circle">
-                        <img class="icon-head" src="{{ asset('assets/image/profile.png') }}">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-upload.png') }}">
                     </a>
-                    <div class="menu-text">Profile</div>
+                    <div class="menu-text">Upload Document</div>
                 </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-sign-doc.png') }}">
+                    </a>
+                    <div class="menu-text">Sign Document</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-getin-sign.png') }}">
+                    </a>
+                    <div class="menu-text">Get it Signed</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-send-doc.png') }}">
+                    </a>
+                    <div class="menu-text">Send Document</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-create-template.png') }}">
+                    </a>
+                    <div class="menu-text">Create Template</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-add-user.png') }}">
+                    </a>
+                    <div class="menu-text">Add User</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-access.png') }}">
+                    </a>
+                    <div class="menu-text">Set up access</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-contact.png') }}">
+                    </a>
+                    <div class="menu-text">Contact</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-recent.png') }}">
+                    </a>
+                    <div class="menu-text">Recent Activity</div>
+                </div>
+                <div class="menu-wrapper">
+                    <a href="#" class="circle">
+                        <img class="icon-head" src="{{ asset('assets/image/icon-message.png') }}">
+                    </a>
+                    <div class="menu-text">New Message</div>
+                </div>
+            <div class="menu-wrapper">
+                <a href="{{ route('myfiles') }}" class="circle">
+                    <img class="icon-head" src="{{ asset('assets/image/home.png') }}">
+                </a>
+                <div class="menu-text">My Files</div>
+            </div>
+
+            <div class="menu-wrapper">
+                <a href="{{ route('home') }}" class="circle">
+                    <img class="icon-head" src="{{ asset('assets/image/icon-home.png') }}">
+                </a>
+                <div class="menu-text">Home</div>
+            </div>
+
+            {{--PROFILE MENU--}}
+            <div class="menu-wrapper">
+                <a href="#" class="circle">
+                    <img class="icon-head" src="{{ asset('assets/image/icon-profile.png') }}">
+                </a>
+                <div class="menu-text">Profile</div>
+
+
             </div>
             <div class="list-inline-item time-container">
                 <span class="mr-3 font-blue-light-14">01/01/2018 12:00 PM</span>
