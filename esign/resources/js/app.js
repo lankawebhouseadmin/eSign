@@ -20,7 +20,7 @@ window.Axios=require('axios');
  */
 
 Vue.component('example-component', require('./components/ExampleComponent.vue'));
-Vue.component('loading', require('./shared/Loading.vue'));
+Vue.component('loading', require('./components/shared/Loading.vue'));
 Vue.component('home', require('./components/Home.vue'));
 Vue.component('documents', require('./components/Documents.vue'));
 

@@ -1,6 +1,6 @@
 <script>
     export default {
-        name: "notification",
+        name: "notify",
         methods: {
             convertToList: function (message) { // convert array into the list
                 if (message instanceof Array) {
