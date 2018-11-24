@@ -47975,6 +47975,8 @@ module.exports = Component.exports
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__shared_Notify__ = __webpack_require__(76);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__shared_Notify__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__shared_Common__ = __webpack_require__(78);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__shared_Common___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__shared_Common__);
 //
 //
 //
@@ -48073,41 +48075,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
+
 
 
 __webpack_require__(61);
@@ -48118,6 +48086,11 @@ __webpack_require__(61);
             showLoader: false,
             url: 'create-folder',
             folders: [],
+            showDeleteButton: false,
+            currentFolder: {
+                parentId: 0
+            },
+            folderNavigationArray: [],
             formData: {
                 id: 0,
                 parentId: 0,
@@ -48127,18 +48100,25 @@ __webpack_require__(61);
         };
     },
     created: function created() {
-        this.showLoader = false;
+        this.showLoader = true;
+        this.getFolders();
     },
     components: {},
     methods: {
+        /**
+         * Get the all parent folder
+         * */
         getFolders: function getFolders() {
             var _this = this;
 
-            // get the annual rate
-            Axios.get('get-folders').then(function (response) {
+            this.showLoader = true;
+            var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-folders';
+            Axios.get(url).then(function (response) {
                 _this.showLoader = false;
                 if (response.data.success) {
-                    _this.folders = response.data.data.securities;
+                    _this.folders = response.data.data;
+                    _this.currentFolder.parentId = 0;
+                    _this.folderNavigationArray = [];
                 } else {
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
                 }
@@ -48147,17 +48127,57 @@ __webpack_require__(61);
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please refresh the page.');
             });
         },
-        createFolder: function createFolder() {
+
+        /**
+         * get the sub folders and files
+         * @param folderId
+         */
+        getSubFolderAndFiles: function getSubFolderAndFiles(folderId) {
             var _this2 = this;
 
-            // save annual rate
+            var pushNavigation = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+            // get the annual rate
             this.showLoader = true;
-            Axios.post(this.url, this.formData).then(function (response) {
+            var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-sub-folders/' + folderId;
+            Axios.get(url).then(function (response) {
                 _this2.showLoader = false;
+                if (response.data.success) {
+                    _this2.folders = response.data.data;
+                    _this2.currentFolder.parentId = folderId;
+                    if (pushNavigation) {
+                        _this2.folderNavigationArray.push(folderId);
+                    }
+                } else {
+                    __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
+                }
+            }); /*.catch((error) => {
+                  alert('failed');
+                  this.showLoader = false;
+                  notify.methods.notifyError('Something went wrong. Please refresh the page.');
+                })*/
+        },
+
+        /**
+         * Create new folder
+         */
+        createFolder: function createFolder() {
+            var _this3 = this;
+
+            // Create folder
+            this.showLoader = true;
+            var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'create-folder';
+            this.formData.parentId = this.currentFolder.parentId;
+            Axios.post(url, this.formData).then(function (response) {
+                _this3.showLoader = false;
                 if (response.data.success) {
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess(response.data.message);
                     $('#modal-new-folder').modal('hide');
-                    _this2.getFolders();
+
+                    if (_this3.currentFolder.parentId > 0) {
+                        _this3.getSubFolderAndFiles(_this3.currentFolder.parentId, false);
+                    } else {
+                        _this3.getFolders();
+                    }
                 } else {
                     if (response.data.error.statusCode === 103) {
                         __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.errorDescription);
@@ -48166,10 +48186,74 @@ __webpack_require__(61);
                     }
                 }
             }).catch(function (error) {
-                _this2.showLoader = false;
+                _this3.showLoader = false;
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please try again.');
             });
         },
+
+        /**
+         * Opend create folder pop-up
+         */
+        openCreateFolderModal: function openCreateFolderModal() {
+            this.formData.name = '';
+            $('#modal-new-folder').modal('show');
+        },
+
+        /**
+         * got back to recent folder
+         *
+         */
+        getBackToFolders: function getBackToFolders() {
+            this.showDeleteButton = false;
+            var folderId = this.folderNavigationArray[this.folderNavigationArray.length - 2];
+            if (typeof folderId === 'undefined') {
+                this.getFolders();
+            } else {
+                this.getSubFolderAndFiles(folderId, false);
+                this.folderNavigationArray.splice(-1);
+
+                console.log(this.folderNavigationArray);
+            }
+        },
+
+        /**
+         * show hide delete button
+         *
+         */
+        showHideDeleteOption: function showHideDeleteOption() {
+            this.showDeleteButton = !this.showDeleteButton;
+        },
+
+        /**
+         * delete the specific folder
+         * @param id
+         */
+        deleteFolder: function deleteFolder(id) {
+            var _this4 = this;
+
+            // save annual rate
+            if (confirm("Are you sure you want to delete this folder?")) {
+                this.showLoader = true;
+                var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'delete-folder/' + id;
+                Axios.delete(url).then(function (response) {
+                    _this4.showLoader = false;
+                    if (response.data.success) {
+                        __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess(response.data.message);
+                        if (_this4.currentFolder.parentId > 0) {
+                            _this4.getSubFolderAndFiles(_this4.currentFolder.parentId, false);
+                        } else {
+                            _this4.getFolders();
+                        }
+                    } else {
+                        __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
+                    }
+                }).catch(function (error) {
+                    _this4.showLoader = false;
+                    __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please try again.');
+                });
+            }
+        },
+
         testMethod: function testMethod() {
             __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess('this is success message');
         }
@@ -54119,107 +54203,226 @@ var render = function() {
     [
       _c("div", { staticClass: "position-relative" }, [
         _c("div", { staticClass: "folder-list-wrapper" }, [
-          _vm._m(0),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-container mt-3" }, [
+          _c("section", { staticClass: "folder-navigation" }, [
             _c(
-              "button",
+              "h3",
               {
-                on: {
-                  click: function($event) {
-                    _vm.testMethod()
-                  }
-                }
+                staticClass: "folder-navigation",
+                on: { click: _vm.getFolders }
               },
-              [_vm._v("Test Me!")]
+              [_vm._v("\n                    My Documents\n                ")]
             ),
             _vm._v(" "),
-            _vm._m(1),
+            _vm.folderNavigationArray.length
+              ? _c(
+                  "button",
+                  {
+                    staticClass: "btn access-button form-btn",
+                    staticStyle: { padding: "2px 10px", "box-shadow": "none" },
+                    attrs: { type: "button" },
+                    on: { click: _vm.getBackToFolders }
+                  },
+                  [
+                    _c("i", {
+                      staticClass: "fa fa-arrow-left mr-2",
+                      attrs: { "aria-hidden": "true" }
+                    }),
+                    _vm._v("Go Back\n                ")
+                  ]
+                )
+              : _vm._e()
+          ]),
+          _vm._v(" "),
+          _c("div", { staticClass: "folder-container mt-3" }, [
+            _vm.folders.length
+              ? _c(
+                  "ul",
+                  { class: { "delete-folder": _vm.showDeleteButton } },
+                  _vm._l(_vm.folders, function(folder, index) {
+                    return _c(
+                      "li",
+                      { staticClass: "folder-box position-relative" },
+                      [
+                        _c(
+                          "a",
+                          {
+                            staticClass: "link-btn",
+                            on: {
+                              click: function($event) {
+                                _vm.getSubFolderAndFiles(folder.id, folder.name)
+                              }
+                            }
+                          },
+                          [
+                            _vm._m(0, true),
+                            _vm._v(" "),
+                            _c(
+                              "div",
+                              {
+                                staticClass: "folder-text",
+                                attrs: { title: folder.name }
+                              },
+                              [_vm._v(_vm._s(folder.name))]
+                            )
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c(
+                          "div",
+                          {
+                            staticClass: "folder-delete",
+                            on: {
+                              click: function($event) {
+                                _vm.deleteFolder(folder.id)
+                              }
+                            }
+                          },
+                          [
+                            _c("i", {
+                              staticClass: "fa fa-trash icon-delete",
+                              attrs: { "aria-hidden": "true" }
+                            })
+                          ]
+                        )
+                      ]
+                    )
+                  })
+                )
+              : _c("div", { staticClass: "empty-directory" }, [
+                  _vm._v("This folder is empty.")
+                ]),
             _vm._v(" "),
             _c("div", { staticClass: "clearfix" })
           ])
         ]),
         _vm._v(" "),
-        _vm._m(2),
+        _vm._m(1),
         _vm._v(" "),
-        _vm._m(3)
-      ]),
-      _vm._v(" "),
-      _c(
-        "div",
-        { staticClass: "modal fade", attrs: { id: "modal-new-folder" } },
-        [
-          _c("div", { staticClass: "modal-dialog" }, [
-            _c("div", { staticClass: "modal-content" }, [
-              _vm._m(4),
-              _vm._v(" "),
-              _c("div", { staticClass: "modal-body" }, [
-                _c("div", [
-                  _c("div", {
-                    staticClass: "alert",
-                    staticStyle: { display: "none", "margin-top": "10px" }
+        _c("div", { staticClass: "file-tool" }, [
+          _c("ul", { staticClass: "file-tool-list" }, [
+            _vm._m(2),
+            _vm._v(" "),
+            _c("li", [
+              _c(
+                "a",
+                {
+                  staticClass: "link-btn",
+                  attrs: { title: "New Folder" },
+                  on: { click: _vm.openCreateFolderModal }
+                },
+                [
+                  _c("i", {
+                    staticClass: "fa fa-folder-o mr-2",
+                    attrs: { "aria-hidden": "true" }
                   }),
-                  _vm._v(" "),
+                  _vm._v("New Folder")
+                ]
+              )
+            ]),
+            _vm._v(" "),
+            !_vm.showDeleteButton && _vm.folders.length
+              ? _c("li", { staticClass: "mt-3" }, [
                   _c(
-                    "form",
+                    "a",
                     {
-                      staticClass: "form-horizontal",
-                      attrs: { id: "myform" },
-                      on: {
-                        submit: function($event) {
-                          $event.preventDefault()
-                          return _vm.createFolder($event)
-                        }
-                      }
+                      staticClass: "link-btn color-red",
+                      attrs: { title: "New Folder" },
+                      on: { click: _vm.showHideDeleteOption }
                     },
                     [
-                      _c("div", { staticClass: "box-body" }, [
-                        _c("div", { staticClass: "form-group" }, [
-                          _c(
-                            "label",
-                            { staticClass: "col-sm-4 control-label" },
-                            [_vm._v("Folder Name")]
-                          ),
-                          _vm._v(" "),
-                          _c("div", { staticClass: "col-sm-7" }, [
-                            _c("input", {
-                              directives: [
-                                {
-                                  name: "model",
-                                  rawName: "v-model",
-                                  value: _vm.formData.name,
-                                  expression: "formData.name"
-                                }
-                              ],
-                              staticClass: "form-control",
-                              attrs: { type: "text", name: "name" },
-                              domProps: { value: _vm.formData.name },
-                              on: {
-                                input: function($event) {
-                                  if ($event.target.composing) {
-                                    return
-                                  }
-                                  _vm.$set(
-                                    _vm.formData,
-                                    "name",
-                                    $event.target.value
-                                  )
-                                }
-                              }
-                            })
-                          ])
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _vm._m(5)
+                      _c("i", {
+                        staticClass: "fa fa-trash mr-2",
+                        attrs: { "aria-hidden": "true" }
+                      }),
+                      _vm._v("Remove Folder")
                     ]
                   )
                 ])
-              ])
-            ])
+              : _vm._e(),
+            _vm._v(" "),
+            _vm.showDeleteButton && _vm.folders.length
+              ? _c("li", { staticClass: "mt-3" }, [
+                  _c(
+                    "a",
+                    {
+                      staticClass: "link-btn color-red",
+                      attrs: { title: "New Folder" },
+                      on: { click: _vm.showHideDeleteOption }
+                    },
+                    [
+                      _c("i", {
+                        staticClass: "fa fa-times-circle mr-2",
+                        attrs: { "aria-hidden": "true" }
+                      }),
+                      _vm._v("Cancel Remove")
+                    ]
+                  )
+                ])
+              : _vm._e()
           ])
-        ]
-      ),
+        ])
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "modal", attrs: { id: "modal-new-folder" } }, [
+        _c("div", { staticClass: "modal-dialog" }, [
+          _c("div", { staticClass: "modal-content" }, [
+            _c(
+              "form",
+              {
+                staticClass: "form-horizontal",
+                attrs: { id: "myform" },
+                on: {
+                  submit: function($event) {
+                    $event.preventDefault()
+                    return _vm.createFolder($event)
+                  }
+                }
+              },
+              [
+                _vm._m(3),
+                _vm._v(" "),
+                _c("div", { staticClass: "modal-body" }, [
+                  _c("div", { staticClass: "box-body" }, [
+                    _c("div", { staticClass: "form-group" }, [
+                      _c("label", { attrs: { for: "folderName" } }, [
+                        _vm._v("Folder Name")
+                      ]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.formData.name,
+                            expression: "formData.name"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          type: "text",
+                          id: "folderName",
+                          placeholder: "Folder Name"
+                        },
+                        domProps: { value: _vm.formData.name },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.formData, "name", $event.target.value)
+                          }
+                        }
+                      })
+                    ])
+                  ])
+                ]),
+                _vm._v(" "),
+                _vm._m(4)
+              ]
+            )
+          ])
+        ])
+      ]),
       _vm._v(" "),
       _c("notifications", { attrs: { "animation-type": "velocity" } }),
       _vm._v(" "),
@@ -54242,94 +54445,11 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("section", { staticClass: "header-my-files" }, [
-      _c("h3", { staticClass: "folder-navigation" }, [_vm._v("My Documents")])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("ul", [
-      _c("li", [
-        _c("a", { attrs: { href: "/uploads" } }, [
-          _c("div", { staticClass: "folder" }, [
-            _c("i", {
-              staticClass: "fa fa-folder mr-2",
-              attrs: { "aria-hidden": "true" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-text" }, [_vm._v("Uploads")])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("a", { attrs: { href: "/paused" } }, [
-          _c("div", { staticClass: "folder" }, [
-            _c("i", {
-              staticClass: "fa fa-folder mr-2",
-              attrs: { "aria-hidden": "true" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-text" }, [_vm._v("Paused")])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("a", { attrs: { href: "/my-signed-documents" } }, [
-          _c("div", { staticClass: "folder" }, [
-            _c("i", {
-              staticClass: "fa fa-folder mr-2",
-              attrs: { "aria-hidden": "true" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-text" }, [
-            _vm._v("My Signed Documents")
-          ])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("a", { attrs: { href: "/deleted" } }, [
-          _c("div", { staticClass: "folder" }, [
-            _c("i", {
-              staticClass: "fa fa-folder mr-2",
-              attrs: { "aria-hidden": "true" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-text" }, [_vm._v("Deleted")])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("a", { attrs: { href: "/history" } }, [
-          _c("div", { staticClass: "folder" }, [
-            _c("i", {
-              staticClass: "fa fa-folder mr-2",
-              attrs: { "aria-hidden": "true" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-text" }, [_vm._v("History")])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("a", { attrs: { href: "/signed" } }, [
-          _c("div", { staticClass: "folder" }, [
-            _c("i", {
-              staticClass: "fa fa-folder mr-2",
-              attrs: { "aria-hidden": "true" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "folder-text" }, [_vm._v("Signed")])
-        ])
-      ])
+    return _c("div", { staticClass: "folder" }, [
+      _c("i", {
+        staticClass: "fa fa-folder mr-2",
+        attrs: { "aria-hidden": "true" }
+      })
     ])
   },
   function() {
@@ -54338,10 +54458,6 @@ var staticRenderFns = [
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "file-content" }, [
       _c("div", { staticClass: "file-container" }, [
-        _c("div", { staticClass: "empty-folder text-center" }, [
-          _vm._v("\n                    This folder is empty\n                ")
-        ]),
-        _vm._v(" "),
         _c("div", { staticClass: "text-center drag-drop-box" }, [
           _c("br"),
           _vm._v(" "),
@@ -54357,13 +54473,17 @@ var staticRenderFns = [
           _vm._v(" "),
           _c("br"),
           _vm._v(" "),
-          _c("a", { attrs: { href: "#", title: "Upload Files" } }, [
-            _c("i", {
-              staticClass: "fa fa-upload mr-2",
-              attrs: { "aria-hidden": "true" }
-            }),
-            _vm._v("Click here to upload.")
-          ])
+          _c(
+            "a",
+            { staticClass: "link-btn", attrs: { title: "Upload Files" } },
+            [
+              _c("i", {
+                staticClass: "fa fa-upload mr-2",
+                attrs: { "aria-hidden": "true" }
+              }),
+              _vm._v("Click here to upload.")
+            ]
+          )
         ])
       ])
     ])
@@ -54372,27 +54492,13 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "file-tool" }, [
-      _c("ul", { staticClass: "file-tool-list" }, [
-        _c("li", [
-          _c("a", { attrs: { href: "#", title: "Upload Files" } }, [
-            _c("i", {
-              staticClass: "fa fa-upload mr-2",
-              attrs: { "aria-hidden": "true" }
-            }),
-            _vm._v("Upload Documents")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", [
-          _c("a", { attrs: { href: "#", title: "New Folder" } }, [
-            _c("i", {
-              staticClass: "fa fa-folder-o mr-2",
-              attrs: { "aria-hidden": "true" }
-            }),
-            _vm._v("New Folder")
-          ])
-        ])
+    return _c("li", [
+      _c("a", { staticClass: "link-btn", attrs: { title: "Upload Files" } }, [
+        _c("i", {
+          staticClass: "fa fa-upload mr-2",
+          attrs: { "aria-hidden": "true" }
+        }),
+        _vm._v("Upload Documents")
       ])
     ])
   },
@@ -54401,34 +54507,27 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "modal-header" }, [
+      _c("h4", { staticClass: "modal-title" }, [_vm._v("Create New Folder")]),
+      _vm._v(" "),
       _c(
         "button",
         {
           staticClass: "close",
-          attrs: {
-            type: "button",
-            "data-dismiss": "modal",
-            "aria-label": "Close"
-          }
+          attrs: { type: "button", "data-dismiss": "modal" }
         },
-        [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
-      ),
-      _vm._v(" "),
-      _c("h4", { staticClass: "modal-title" }, [_vm._v("Create New Folder")])
+        [_vm._v("×")]
+      )
     ])
   },
   function() {
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "modal-footer pb-0" }, [
+    return _c("div", { staticClass: "modal-footer" }, [
       _c(
         "button",
-        {
-          staticClass: "btn btn-purple",
-          attrs: { id: "btn_submit", type: "submit" }
-        },
-        [_vm._v("Submit")]
+        { staticClass: "btn btn-blue form-btn", attrs: { type: "submit" } },
+        [_vm._v("Create Folder")]
       )
     ])
   }
@@ -54736,6 +54835,70 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             });
         } /** END OF METHOD SECTION **/
     } });
+
+/***/ }),
+/* 78 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(79)
+/* template */
+var __vue_template__ = null
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/shared/Common.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-96464f8c", Component.options)
+  } else {
+    hotAPI.reload("data-v-96464f8c", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 79 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "common",
+    data: function data() {
+        return {
+            serverPath: 'http://localhost/eSign/esign/public/'
+        };
+    },
+    methods: {}
+});
 
 /***/ })
 /******/ ]);
