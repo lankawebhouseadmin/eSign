@@ -3,7 +3,7 @@
         name: "common",
         data: function() {
           return {
-              serverPath: 'http://localhost/eSign/esign/public/'
+              serverPath: 'http://70.37.56.58/'
           }
         },
         methods: {}
