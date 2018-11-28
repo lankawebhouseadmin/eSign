@@ -40,6 +40,7 @@
         <script src="{{ asset('js/libs/jquery-3.2.1.slim.min.js') }}"></script>
         <script src="{{ asset('js/libs/popper.min.js') }}"></script>
         <script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>
-        @yield('scripts');
+        
+        @yield('scripts')
     </body>
 </html>

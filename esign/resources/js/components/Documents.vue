@@ -50,22 +50,16 @@
             <div class="file-content">
                 <div class="file-container">
                     <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions" @vdropzone-success="onComplete" @vdropzone-sending="sendingEvent" @vdropzone-max-files-exceeded="maxFilesExceeded" :useCustomSlot=true>
-                    <div class="dropzone-custom-content1">
-                    <div class="text-center drag-drop-box1">
-                        <br/>
-                        
-                        <div class="drag-text">Drag and drop files onto this windows to upload.</div>
-
-                        <label style="font-size: 16px;margin: 10px 0;">Or</label>
-                        <br/>
-                        <a title="Upload Files" class="link-btn"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Click here to upload.</a>
-                        
-                            
-                                
-                              </div>
-                              </div>
-                        </vue-dropzone>
-                    
+                        <div class="dropzone-custom-content1">
+                            <div class="text-center drag-drop-box1">
+                                <br/>
+                                <div class="drag-text">Drag and drop files onto this windows to upload.</div>
+                                <label style="font-size: 16px;margin: 10px 0;">Or</label>
+                                <br/>
+                                <a title="Upload Files" class="link-btn"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Click here to upload.</a>
+                            </div>
+                        </div>
+                    </vue-dropzone>
                 </div>
             </div>
             <div class="file-tool">
