@@ -106,4 +106,7 @@ class MyFiles extends Controller
     public function deleteDocument($id) {
         return $this->myFiles->deleteDocument($id);
     }
+    public function getDocument($documentId,$folerId) {
+        return $this->myFiles->getDocument($documentId,$folerId);
+    }
 }

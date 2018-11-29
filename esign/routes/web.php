@@ -29,6 +29,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::delete('delete-folder/{folderId}', 'MyFiles@deleteFolder');
     Route::delete('delete-document/{documentId}', 'MyFiles@deleteDocument');
     Route::post('upload-document', 'MyFiles@uploadDocument');
+    Route::get('/get-document/{documentId}/{folderId}', 'MyFiles@getDocument');
 });
 
 //Route::group(['prefix' => 'admin',  'middleware' => 'auth:admin'], function() {

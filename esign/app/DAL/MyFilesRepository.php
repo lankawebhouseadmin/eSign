@@ -242,19 +242,24 @@ class MyFilesRepository extends Repository
 
     public function uploadDocument($data){
         $userId = Auth::user()->id;
-        
-        try {
+        $validator = $this->validateFileUpload($data);
 
-            $userDirectoryId = $data['user_directory_id'];
-        
-            $fileName = time() . '.' . $data['file']->getClientOriginalExtension();       
-            $originalName = $data['file']->getClientOriginalName();
-            $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
+        //VALIDATION FUNCTION
+        if ($validator->fails()) {
+            $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => $validator->errors()]);
+        } else {
+            try {
 
-            $path = Storage::putFileAs($pathToStoreFile, $data['file'], $fileName);
+                $userDirectoryId = $data['user_directory_id'];
+
+                $fileName = time() . '.' . $data['file']->getClientOriginalExtension();
+                $originalName = $data['file']->getClientOriginalName();
+                $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
+
+                $path = Storage::putFileAs($pathToStoreFile, $data['file'], $fileName);
 
                 Db::beginTransaction();
-            
+
                 /*$saveData['user_directory_id'] = $userDirectoryId;
                 $saveData['file_path']=$path;
                 $saveData['file_name']=$fileName;
@@ -275,15 +280,16 @@ class MyFilesRepository extends Repository
                 $message = 'File Uploaded successfully.';
                 $response = array($this->common->success => true, 'message' => $message);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $response = array(
-                $this->common->success => false,
-                'error' => [
-                    'code' => $e->getCode(),
-                    'message' => $e->getMessage()
-                ]
-            );
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $response = array(
+                    $this->common->success => false,
+                    'error' => [
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ]
+                );
+            }
         }
         return Response::json($response);
     }
@@ -296,10 +302,7 @@ class MyFilesRepository extends Repository
     {
         try {
             Db::beginTransaction();
-            $userDocument = new UserDocuments();
-            
-            /*$userDocument->deleted_at = Carbon::now();
-            $userDocument->delete($id);*/
+
             UserDocuments::find($id)->delete();
             Db::commit();
             $response = array($this->common->success => true, 'message' => 'Document deleted successfully.');
@@ -316,5 +319,49 @@ class MyFilesRepository extends Repository
 
         return Response::json($response);
 
+    }
+    public function validateFileUpload($data)
+    {
+        return  Validator::make($data,[
+            'file' => "required|mimes:doc,docx,pdf"
+        ],
+            [
+                'file.required' => 'File is required to upload.',
+                'file.mimes'  => 'File type not supported.'
+            ]);
+    }
+    public function getDocument($documentId,$folderId){
+        $userId = Auth::user()->id;
+        try {
+            $data = [];
+            Db::beginTransaction();
+
+            $document = DB::table('user_documents as ud')
+                ->where('ud.id', $documentId)
+                ->where('ud.user_id', $userId)
+                ->where('ud.user_directory_id', $folderId)
+                ->whereNull('ud.deleted_at')->first();
+            DB::commit();
+
+            $documentPath = $document->file_path;
+            $exists = Storage::disk('local')->exists($documentPath);
+            if($exists){
+                $data['url'] = url('/').Storage::disk('local')->url($document->file_path);
+                $data['mimeType'] = Storage::mimeType($documentPath);
+
+            }
+            $response = array($this->common->success => true, 'data' => $data);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        return Response::json($response);
     }
 }

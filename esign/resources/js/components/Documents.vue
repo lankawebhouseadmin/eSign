@@ -35,7 +35,7 @@
                 <div class="documents-container">
                     <ul v-if="documents.length">
                         <li v-for="(document, index) in documents">
-                            <a class="link-btn" v-bind:href="document.file_path" target="_blank">
+                            <a class="link-btn" @click="previewDocument(document.id)">
                                 <i class="fa fa-file file"></i><span class="folder-text" v-bind:title="document.file_original_name">{{document.file_original_name}}</span>
                                 
                             </a>
@@ -48,7 +48,7 @@
                 </div>
             </div>
             <div class="file-content">
-                <div class="file-container">
+                <div class="file-container " v-if="!showPreview">
                     <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions" @vdropzone-success="onComplete" @vdropzone-sending="sendingEvent" @vdropzone-max-files-exceeded="maxFilesExceeded" :useCustomSlot=true>
                         <div class="dropzone-custom-content1">
                             <div class="text-center drag-drop-box1">
@@ -60,6 +60,13 @@
                             </div>
                         </div>
                     </vue-dropzone>
+                </div>
+                <div class="filePreview " v-else>
+                    <!--<iframe src="https://docs.google.com/viewer?url=http://13.71.190.166/fees_report_2018-10.pdf&embedded=true" style="width:600px; height:500px;" frameborder='0'>
+                    </iframe>-->
+                    <div class="backBtn"><button type="button" class="btn btn-md access-button form-btn" @click="backToDocuments" style="padding: 2px 10px; box-shadow: none;"><i class="fa fa-arrow-left mr-2" aria-hidden="true"></i>Go Back To Documents</button></div>
+                    <iframe v-if="pdfFile" class="img" v-bind:src="docPreviewUrl" width="100%" height="500px" border="0"></iframe>
+                    <VueDocPreview v-else v-bind:value="docLink" v-bind:type="docType" />
                 </div>
             </div>
             <div class="file-tool">
@@ -118,6 +125,7 @@
     import common from './shared/Common'
     import vue2Dropzone from 'vue2-dropzone'
     import 'vue2-dropzone/dist/vue2Dropzone.min.css'
+    import VueDocPreview from 'vue-doc-preview'
 
     require('../main');
     export default {
@@ -146,7 +154,12 @@
                     headers: {
                         "X-CSRF-TOKEN": document.head.querySelector("[name=csrf-token]").content
                     }
-                }
+                },
+                docPreviewUrl: '',
+                showPreview: false,
+                docLink: '',
+                docType: '',
+                pdfFile: true
             }
         },
         created: function () {
@@ -154,7 +167,8 @@
             this.getFolders();
         },
         components: {
-            vueDropzone: vue2Dropzone
+            vueDropzone: vue2Dropzone,
+            VueDocPreview
         },
         methods: {
             /**
@@ -343,7 +357,6 @@
                 formData.append('user_directory_id',this.currentFolder.parentId);
             },
             onComplete : function(file, response){
-                console.log(response);
                 if(response.success){
                     this.$refs.myVueDropzone.removeAllFiles();
                     notify.methods.notifySuccess(response.message);
@@ -353,14 +366,48 @@
                         this.getFolders();
                     }
                 }else{
-                    notify.methods.notifyError(response.error.message);
+                    if (response.error.statusCode === 103) {
+                        notify.methods.notifyError(response.error.errorDescription);
+                    } else {
+                        notify.methods.notifyError(response.error.message);
+                    }
                 }
                 
             },
             maxFilesExceeded : function (file){
-            console.log('LIMIT EXCEEDDED');
-            console.log(file.name);
                 notify.methods.notifyError('You have reached max file upload limit. '+file.name+' has not been uploaded.');
+            },
+            previewDocument : function (documentId){
+                this.showLoader = true;
+                this.backToDocuments();
+                const url = common.data().serverPath + 'get-document/' + documentId + '/' + this.currentFolder.parentId;
+                Axios.get(url).then((response) => {
+                    if (response.data.success) {
+                        if(response.data.data.mimeType != 'application/pdf'){
+                            this.pdfFile=false;
+                            console.log('hee');
+                            this.docLink = response.data.data.url;
+                            this.docType = 'office';
+                        }else{
+                            console.log('else');
+                            this.pdfFile=true;
+                            this.docPreviewUrl = response.data.data.url;
+                        }
+
+                        this.showLoader = false;
+                        this.showPreview = true;
+                    } else {
+                        notify.methods.notifyError(response.data.error.message);
+                    }
+                }).catch((error) => {
+                    console.log(error);
+                    this.showLoader = false;
+                    notify.methods.notifyError('Unable to fetch the document. Please try again.');
+                })
+
+            },
+            backToDocuments : function(){
+                this.showPreview = false;
             },
             testMethod: function () {
 
