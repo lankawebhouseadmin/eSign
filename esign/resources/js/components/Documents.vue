@@ -36,7 +36,7 @@
                     <ul v-if="documents.length">
                         <li v-for="(document, index) in documents">
                             <a class="link-btn" @click="previewDocument(document.id)">
-                                <i class="fa fa-file file"></i><span class="folder-text" v-bind:title="document.file_original_name">{{document.file_original_name}}</span>
+                                <i v-bind:class="getDocumentIcon(document.file_original_name)" class="file" ></i><span class="folder-text" v-bind:title="document.file_original_name">{{document.file_original_name}}</span>
                                 
                             </a>
                             <span class="document-delete pull-right" @click="deleteDocument(document.id)">
@@ -66,7 +66,7 @@
                     </iframe>-->
                     <div class="backBtn"><button type="button" class="btn btn-md access-button form-btn" @click="backToDocuments" style="padding: 2px 10px; box-shadow: none;"><i class="fa fa-arrow-left mr-2" aria-hidden="true"></i>Go Back To Documents</button></div>
                     <iframe v-if="pdfFile" class="img" v-bind:src="docPreviewUrl" width="100%" height="500px" border="0"></iframe>
-                    <VueDocPreview v-else v-bind:value="docLink" v-bind:type="docType" />
+                    <VueDocPreview v-else v-bind:value="docPreviewUrl" type="office" />
                 </div>
             </div>
             <div class="file-tool">
@@ -157,8 +157,6 @@
                 },
                 docPreviewUrl: '',
                 showPreview: false,
-                docLink: '',
-                docType: '',
                 pdfFile: true
             }
         },
@@ -356,6 +354,10 @@
             sendingEvent: function(file,xhr,formData){
                 formData.append('user_directory_id',this.currentFolder.parentId);
             },
+
+            /**
+             * After successful upload reload files and folders.
+             */
             onComplete : function(file, response){
                 if(response.success){
                     this.$refs.myVueDropzone.removeAllFiles();
@@ -377,6 +379,10 @@
             maxFilesExceeded : function (file){
                 notify.methods.notifyError('You have reached max file upload limit. '+file.name+' has not been uploaded.');
             },
+
+            /**
+             * Preview the document
+             */
             previewDocument : function (documentId){
                 this.showLoader = true;
                 this.backToDocuments();
@@ -385,22 +391,16 @@
                     if (response.data.success) {
                         if(response.data.data.mimeType != 'application/pdf'){
                             this.pdfFile=false;
-                            console.log('hee');
-                            this.docLink = response.data.data.url;
-                            this.docType = 'office';
                         }else{
-                            console.log('else');
                             this.pdfFile=true;
-                            this.docPreviewUrl = response.data.data.url;
                         }
-
+                        this.docPreviewUrl = response.data.data.url;
                         this.showLoader = false;
                         this.showPreview = true;
                     } else {
                         notify.methods.notifyError(response.data.error.message);
                     }
                 }).catch((error) => {
-                    console.log(error);
                     this.showLoader = false;
                     notify.methods.notifyError('Unable to fetch the document. Please try again.');
                 })
@@ -408,6 +408,11 @@
             },
             backToDocuments : function(){
                 this.showPreview = false;
+            },
+            getDocumentIcon: function (fileName){
+                var ext = fileName.substr(fileName.lastIndexOf('.') + 1);
+                var icon = (ext === 'pdf') ? 'fa fa-file-pdf-o' : 'fa fa-file-word-o';
+                return icon;
             },
             testMethod: function () {
 
