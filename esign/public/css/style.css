@@ -529,7 +529,21 @@ overflow: auto;
     border-radius: 5px;
     border: 1px solid #ffffff;
 }
-.delete-folder .folder-delete {
+.folder-edit {
+    display: none;
+    font-size: 15px;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    z-index: 1;
+    background: #f3fafe;
+    border-radius: 50%;
+    padding: 0px 5px;
+    border: 1px solid #e0e0e0;
+    opacity: 1.5;
+    color: #4f6df5;
+}
+.delete-folder .folder-delete,.folder-box:hover .folder-edit{
     display: block;
 }
 .icon-delete {

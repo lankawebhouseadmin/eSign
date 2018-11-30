@@ -48264,6 +48264,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
 
 
 
@@ -48406,6 +48409,7 @@ __webpack_require__(69);
          */
         openCreateFolderModal: function openCreateFolderModal() {
             this.formData.name = '';
+            this.formData.id = 0;
             $('#modal-new-folder').modal('show');
         },
 
@@ -48561,9 +48565,11 @@ __webpack_require__(69);
             var icon = ext === 'pdf' ? 'fa fa-file-pdf-o' : 'fa fa-file-word-o';
             return icon;
         },
-        testMethod: function testMethod() {
-
-            __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess('this is success message');
+        editFolder: function editFolder(folder) {
+            this.formData.name = folder.name;
+            this.formData.id = folder.id;
+            this.formData.parentId = this.currentFolder.parentId;
+            $('#modal-new-folder').modal('show');
         }
     }
 });
@@ -55291,6 +55297,24 @@ var render = function() {
                           [
                             _c("i", {
                               staticClass: "fa fa-trash icon-delete",
+                              attrs: { "aria-hidden": "true" }
+                            })
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c(
+                          "div",
+                          {
+                            staticClass: "folder-edit",
+                            on: {
+                              click: function($event) {
+                                _vm.editFolder(folder)
+                              }
+                            }
+                          },
+                          [
+                            _c("i", {
+                              staticClass: "fa fa-pencil icon-edit",
                               attrs: { "aria-hidden": "true" }
                             })
                           ]

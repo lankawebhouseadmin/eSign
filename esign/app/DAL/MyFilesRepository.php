@@ -139,51 +139,59 @@ class MyFilesRepository extends Repository
             $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => $validator->errors()]);
 
         } else {
+            $id = (int)$data['id'];
+            $saveData['user_id'] = $userId;
+            $saveData['name'] = trim($data['name']);
+            $parentFolderId = (int)$data['parentId'];
 
-            try {
-                Db::beginTransaction();
-                $saveData['name'] = trim($data['name']);
-                $saveData['user_id'] = $userId;
-                $parentFolderId = (int)$data['parentId'];
+            // CHECK IF FOLDER NAME ALREADY EXISTS.
+            $isDirectoryExists = $this->isDirectoryExists($userId,$id,$parentFolderId,$data['name']);
 
-                $id = (int)$data['id'];
+            if (!$isDirectoryExists) {
+                try {
+                    Db::beginTransaction();
 
-                if ($id) {
-                    $message = 'Folder updated successfully.';
-                    $saveData['updated_at'] = Carbon::now();
-                    parent::update($saveData, $id);
-                } else {
-                    $message = 'Folder created successfully.';
-                    $saveData['created_at'] = Carbon::now();
-                    $insertedFolder  = parent::create($saveData);
+                    if ($id) {
+                        //check whether folder name alrady exist on current folder directory
+                        $message = 'Folder updated successfully.';
+                        $saveData['updated_at'] = Carbon::now();
+                        parent::update($saveData, $id);
 
-                    // check if the folder has parent folder and map current folder with it's parent
+                    } else {
+                        $message = 'Folder created successfully.';
+                        $saveData['created_at'] = Carbon::now();
+                        $insertedFolder = parent::create($saveData);
 
-                    if ($parentFolderId > 0) {
-                        $folderId = (int)$insertedFolder->id;
+                        // check if the folder has parent folder and map current folder with it's parent
 
-                        $parentDirectory = new UserParentDirectory();
+                        if ($parentFolderId > 0) {
+                            $folderId = (int)$insertedFolder->id;
 
-                        $parentDirectory->user_directory_id = $folderId;
-                        $parentDirectory->user_parent_directory_id = $parentFolderId;
+                            $parentDirectory = new UserParentDirectory();
 
-                        $parentDirectory->save();
+                            $parentDirectory->user_directory_id = $folderId;
+                            $parentDirectory->user_parent_directory_id = $parentFolderId;
+
+                            $parentDirectory->save();
+                        }
                     }
+
+                    DB::commit();
+
+                    $response = array($this->common->success => true, 'message' => $message);
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    $response = array(
+                        $this->common->success => false,
+                        'error' => [
+                            'code' => $e->getCode(),
+                            'message' => $e->getMessage()
+                        ]
+                    );
                 }
-
-                DB::commit();
-
-                $response = array($this->common->success => true, 'message' => $message);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $response = array(
-                    $this->common->success => false,
-                    'error' => [
-                        'code' => $e->getCode(),
-                        'message' => $e->getMessage()
-                    ]
-                );
+            } else {
+                $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => ['Folder name already exists. Please try another.']]);
             }
 
         }
@@ -251,9 +259,19 @@ class MyFilesRepository extends Repository
             try {
 
                 $userDirectoryId = $data['user_directory_id'];
-
+                //$isConfirmByUser = true;
                 $fileName = time() . '.' . $data['file']->getClientOriginalExtension();
                 $originalName = $data['file']->getClientOriginalName();
+                //$fileName = $originalName;
+                /* check Whether file with same name exists */
+                /*$isDocumentExist = $this->isDocumentExists($userId,$userDirectoryId,$originalName);
+                if($isDocumentExist){
+                    //user confirmation call
+
+                }
+                if($isConfirmByUser){
+
+                }*/
                 $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
 
                 $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
@@ -357,4 +375,41 @@ class MyFilesRepository extends Repository
         }
         return Response::json($response);
     }
+    public function isDirectoryExists($userId,$folderId,$parentFolderId,$name){
+        $count= 0;
+        if($parentFolderId==0){
+
+            $folders = DB::table('user_directory')
+                ->where('user_id',$userId)
+                ->where('name',$name)
+                ->whereNull('deleted_at')
+                ->where('id','<>',$folderId)->pluck('id')->toArray();
+            $count = count($folders);
+            /* IF FOUND RECORD WITH SAME NAME THEN CHECK WHETHER ITS CHILD DIRECTORY OR NOT */
+            if ($count) {
+                $childCount = DB::table('user_parent_directory as upd')->whereIn('user_directory_id', $folders)->count();
+                if ($count === $childCount) {
+                    /* ALLOW IF RECORD IS FOR CHILD DIRECTORY */
+                    $count = 0;
+                }
+            }
+
+        } else {
+            $count = DB::table('user_parent_directory as upd')
+                ->leftJoin('user_directory as ud','upd.user_directory_id','=','ud.id')
+                ->select('ud.*')
+                ->where('ud.user_id', $userId)
+                ->where('upd.user_parent_directory_id', $parentFolderId)
+                ->where('ud.id','<>', $folderId)
+                ->where('ud.name', $name)
+                ->whereNull('ud.deleted_at')->count();
+
+        }
+        return $count;
+    }
+    /*public function isDocumentExists($userId,$userDirectoryId,$originalName){
+        $documentPath = $userId.'/documents/'.$userDirectoryId.'/'.$originalName;
+        $exists = Storage::disk('public')->exists($documentPath);
+        return $exists;
+    }*/
 }

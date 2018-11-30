@@ -26,6 +26,9 @@
                             <div class="folder-delete" @click="deleteFolder(folder.id)">
                                 <i class="fa fa-trash icon-delete" aria-hidden="true"></i>
                             </div>
+                            <div class="folder-edit" @click="editFolder(folder)">
+                                <i class="fa fa-pencil icon-edit" aria-hidden="true"></i>
+                            </div>
                         </li>
                     </ul>
                     <div v-if="!folders.length && !documents.length" class="empty-directory">This folder is empty.</div>
@@ -258,6 +261,7 @@
              */
             openCreateFolderModal: function() {
                 this.formData.name = '';
+                this.formData.id = 0;
                 $('#modal-new-folder').modal('show');
             },
 
@@ -414,9 +418,11 @@
                 var icon = (ext === 'pdf') ? 'fa fa-file-pdf-o' : 'fa fa-file-word-o';
                 return icon;
             },
-            testMethod: function () {
-
-                notify.methods.notifySuccess('this is success message');
+            editFolder: function (folder) {
+                this.formData.name = folder.name;
+                this.formData.id = folder.id;
+                this.formData.parentId = this.currentFolder.parentId;
+                $('#modal-new-folder').modal('show');
             }
         }
     }
