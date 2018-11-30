@@ -256,14 +256,9 @@ class MyFilesRepository extends Repository
                 $originalName = $data['file']->getClientOriginalName();
                 $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
 
-                $path = Storage::putFileAs($pathToStoreFile, $data['file'], $fileName);
+                $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
 
                 Db::beginTransaction();
-
-                /*$saveData['user_directory_id'] = $userDirectoryId;
-                $saveData['file_path']=$path;
-                $saveData['file_name']=$fileName;
-                $saveData['file_original_name']=$originalName;*/
 
                 // create user document model objet to store the data
                 $userDocument = new UserDocuments();
@@ -344,14 +339,12 @@ class MyFilesRepository extends Repository
             DB::commit();
 
             $documentPath = $document->file_path;
-            $exists = Storage::disk('local')->exists($documentPath);
+            $exists = Storage::disk('public')->exists($documentPath);
             if($exists){
-                $data['url'] = url('/').Storage::disk('local')->url($document->file_path);
-                $data['mimeType'] = Storage::mimeType($documentPath);
-
+                $data['url'] = url('/').Storage::url($documentPath);
+                $data['mimeType'] = Storage::disk('public')->mimeType($documentPath);
             }
             $response = array($this->common->success => true, 'data' => $data);
-
         } catch (\Exception $e) {
             DB::rollBack();
             $response = array(
