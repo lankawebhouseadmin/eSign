@@ -39,7 +39,7 @@
                     <ul v-if="documents.length">
                         <li v-for="(document, index) in documents">
                             <a class="link-btn" @click="previewDocument(document.id)">
-                                <i v-bind:class="getDocumentIcon(document.file_original_name)" class="file" ></i><span class="folder-text" v-bind:title="document.file_original_name">{{document.file_original_name}}</span>
+                                <i v-bind:class="getDocumentIcon(document.file_name)" class="file" ></i><span class="folder-text" v-bind:title="document.file_name">{{document.file_name}}</span>
                                 
                             </a>
                             <span class="document-delete pull-right" @click="deleteDocument(document.id)">

@@ -259,19 +259,25 @@ class MyFilesRepository extends Repository
             try {
 
                 $userDirectoryId = $data['user_directory_id'];
-                //$isConfirmByUser = true;
-                $fileName = time() . '.' . $data['file']->getClientOriginalExtension();
+                $isConfirmByUser = true;
+                //$fileName = time() . '.' . $data['file']->getClientOriginalExtension();
                 $originalName = $data['file']->getClientOriginalName();
-                //$fileName = $originalName;
+                $fileName = $originalName;
+
                 /* check Whether file with same name exists */
-                /*$isDocumentExist = $this->isDocumentExists($userId,$userDirectoryId,$originalName);
+                $isDocumentExist = $this->isDocumentExists($userId,$userDirectoryId,$originalName);
+                //dd($isDocumentExist);
                 if($isDocumentExist){
+                    $copyName = ' - copy';
+                    if($isDocumentExist > 1){
+                        $copyName = ' - copy(' . $isDocumentExist . ')';
+                    }
+                    $fileName = pathinfo($originalName, PATHINFO_FILENAME).$copyName.'.'.$data['file']->getClientOriginalExtension();
                     //user confirmation call
-
+                    //$response = array($this->common->success => false, 'message' => 'File Already Exist.','exist'=>true);
                 }
-                if($isConfirmByUser){
+                //dd($fileName);
 
-                }*/
                 $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
 
                 $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
@@ -407,9 +413,14 @@ class MyFilesRepository extends Repository
         }
         return $count;
     }
-    /*public function isDocumentExists($userId,$userDirectoryId,$originalName){
-        $documentPath = $userId.'/documents/'.$userDirectoryId.'/'.$originalName;
-        $exists = Storage::disk('public')->exists($documentPath);
-        return $exists;
-    }*/
+    public function isDocumentExists($userId,$folderId,$originalName){
+
+            $count = DB::table('user_documents as ud')
+                ->where('ud.file_original_name', $originalName)
+                ->where('ud.user_id', $userId)
+                ->where('ud.user_directory_id', $folderId)
+                ->whereNull('ud.deleted_at')->count();
+
+        return $count;
+    }
 }

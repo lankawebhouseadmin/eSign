@@ -55353,17 +55353,15 @@ var render = function() {
                         [
                           _c("i", {
                             staticClass: "file",
-                            class: _vm.getDocumentIcon(
-                              document.file_original_name
-                            )
+                            class: _vm.getDocumentIcon(document.file_name)
                           }),
                           _c(
                             "span",
                             {
                               staticClass: "folder-text",
-                              attrs: { title: document.file_original_name }
+                              attrs: { title: document.file_name }
                             },
-                            [_vm._v(_vm._s(document.file_original_name))]
+                            [_vm._v(_vm._s(document.file_name))]
                           )
                         ]
                       ),
