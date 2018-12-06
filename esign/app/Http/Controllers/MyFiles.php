@@ -109,4 +109,15 @@ class MyFiles extends Controller
     public function getDocument($documentId,$folerId) {
         return $this->myFiles->getDocument($documentId,$folerId);
     }
+    /**
+     * Create new user signature
+     *
+     * @return mixed
+     */
+    public function createSignature(Request $request){
+        return $this->myFiles->createSignature($request->all());
+    }
+    public function getUserSignatures(){
+        return $this->myFiles->getUserSignatures();
+    }
 }

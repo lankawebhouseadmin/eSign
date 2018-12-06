@@ -30,6 +30,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::delete('delete-document/{documentId}', 'MyFiles@deleteDocument');
     Route::post('upload-document', 'MyFiles@uploadDocument');
     Route::get('/get-document/{documentId}/{folderId}', 'MyFiles@getDocument');
+    Route::post('create-signature', 'MyFiles@createSignature');
+    Route::get('get-signatures', 'MyFiles@getUserSignatures');
 });
 
 //Route::group(['prefix' => 'admin',  'middleware' => 'auth:admin'], function() {

@@ -4,7 +4,9 @@ namespace App\DAL;
 use App\Models\UserDirectory;
 use App\Models\UserParentDirectory;
 use App\Models\UserDocuments;
+use App\Models\UserSignatures;
 use App\DAL\CommonRepository as common;
+use App\User;
 use Auth;
 use Illuminate\Container\Container as App;
 use Illuminate\Support\Facades\Response;
@@ -86,11 +88,12 @@ class MyFilesRepository extends Repository
                 ->whereNull('ud.deleted_at')->get();
 
             $documents = $this->getDocuments($userId, $folderId);
-
+            //$signatures = User::where('id', $userId)->find(1)->userSignatures()->get();
             $response = array($this->common->success => true);
 
             $response['data']['folders'] = $folders;
             $response['data']['documents'] = $documents;
+            //$response['data']['signatures'] = $signatures;
 
         } catch (\Exception $e) {
             $response = $this->common->getErrorMessage($e->getMessage());
@@ -422,5 +425,68 @@ class MyFilesRepository extends Repository
                 ->whereNull('ud.deleted_at')->count();
 
         return $count;
+    }
+    public function createSignature($data){
+        try {
+            $userId = Auth::user()->id;
+
+            //get the base-64 from data
+            $base64_str = substr($data['signatureData'], strpos($data['signatureData'], ",")+1);
+            //decode base64 string
+            $image = base64_decode($base64_str);
+            //dd($image);
+            $fileName = time().'.png';
+            $pathToStoreFile = $userId . "/signatures/".$fileName;
+
+            Storage::disk('public')->put($pathToStoreFile, $image);
+            /*$storagePath = Storage::disk('public')->getDriver()->getAdapter()->getPathPrefix();
+            echo $storagePath.$fileName;*/
+            Db::beginTransaction();
+
+            // create user document model objet to store the data
+            $userSignature = new UserSignatures();
+            $userSignature->user_id = $userId;
+            $userSignature->file_path = $pathToStoreFile;
+            $userSignature->file_name = $fileName;
+
+            $userSignature->save();
+
+            DB::commit();
+            $message = 'Signature saved successfully.';
+            $response = array($this->common->success => true, 'message' => $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        return Response::json($response);
+    }
+    public function getUserSignatures(){
+        try {
+            $userId = Auth::user()->id;
+            $signatures = User::where('id', $userId)->find(1)->userSignatures()->get();
+            foreach ($signatures as $key => $signature){
+                $signatures[$key]->file_path = url('/').Storage::url($signature->file_path);
+                /*dd($signature->file_path);
+                $path = url('/').Storage::url($signature->file_path);*/
+            }
+            $response = array($this->common->success => true, 'signatures' => $signatures);
+        }catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        return Response::json($response);
     }
 }
