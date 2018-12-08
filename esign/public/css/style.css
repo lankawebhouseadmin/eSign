@@ -612,9 +612,10 @@ canvas{position:absolute;cursor: crosshair;}
     align-items: center;
     background: hsla(0,0%,100%,.8);
 }
-.closed.SignatureModal {
+.closed.SignatureModal,.closed.signsDiv {
     visibility: hidden;
-}.open.SignatureModal {
+}
+.open.SignatureModal, .open.signsDiv{
      visibility: visible;
  }.SignatureModal .modal-dialog {
       background: #fff;

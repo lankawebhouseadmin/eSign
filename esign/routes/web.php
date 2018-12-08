@@ -32,6 +32,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/get-document/{documentId}/{folderId}', 'MyFiles@getDocument');
     Route::post('create-signature', 'MyFiles@createSignature');
     Route::get('get-signatures', 'MyFiles@getUserSignatures');
+    Route::post('upload-signature','MyFiles@uploadSignature');
 });
 
 //Route::group(['prefix' => 'admin',  'middleware' => 'auth:admin'], function() {

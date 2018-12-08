@@ -57,10 +57,12 @@ class MyFilesRepository extends Repository
                 ->whereNull('ud.deleted_at')->get();
 
             $documents = $this->getDocuments($userId, 0);
+            $signatures = $this->getUserSignatures('true');
 
             $response = array($this->common->success => true);
             $response['data']['folders'] = $folders;
             $response['data']['documents'] = $documents;
+            $response['data']['signatures'] = $signatures;
 
         } catch (\Exception $e) {
             $response = $this->common->getErrorMessage($e->getMessage());
@@ -342,15 +344,23 @@ class MyFilesRepository extends Repository
         return Response::json($response);
 
     }
-    public function validateFileUpload($data)
+    public function validateFileUpload($data,$type='')
     {
-        return  Validator::make($data,[
+        $rule = ['file' => "required|mimes:doc,docx,pdf"];
+        if($type =='pic'){
+            $rule = ['file' => 'required|mimes:jpeg,jpg,png'];
+        }
+        return Validator::make($data,$rule,[
+            'file.required' => 'File is required to upload.',
+            'file.mimes'  => 'File type not supported.'
+        ]);
+        /*return  Validator::make($data,[
             'file' => "required|mimes:doc,docx,pdf"
         ],
             [
                 'file.required' => 'File is required to upload.',
                 'file.mimes'  => 'File type not supported.'
-            ]);
+            ]);*/
     }
     public function getDocument($documentId,$folderId){
         $userId = Auth::user()->id;
@@ -427,33 +437,66 @@ class MyFilesRepository extends Repository
         return $count;
     }
     public function createSignature($data){
+        //dd($data);
+        /*$hasError = false;*/
         try {
             $userId = Auth::user()->id;
+            if($data['replaceSignId']){
+                //remove signature
+                Db::beginTransaction();
 
-            //get the base-64 from data
-            $base64_str = substr($data['signatureData'], strpos($data['signatureData'], ",")+1);
-            //decode base64 string
-            $image = base64_decode($base64_str);
-            //dd($image);
-            $fileName = time().'.png';
-            $pathToStoreFile = $userId . "/signatures/".$fileName;
+                UserSignatures::find($data['replaceSignId'])->delete();
+                Db::commit();
+            }
+            /*if($data['type']=='upload'){
+                $validator = $this->validateFileUpload($data,'pic');
 
-            Storage::disk('public')->put($pathToStoreFile, $image);
-            /*$storagePath = Storage::disk('public')->getDriver()->getAdapter()->getPathPrefix();
-            echo $storagePath.$fileName;*/
-            Db::beginTransaction();
+                //VALIDATION FUNCTION
+                if ($validator->fails()) {
+                    $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => $validator->errors()]);
+                    $hasError = true;
+                } else {
+                    $fileExt = $data['file']->getClientOriginalExtension();
+                    $fileName = time().'.'.$fileExt;
+                    $pathToStoreFile = $userId . "/signatures/";
 
-            // create user document model objet to store the data
-            $userSignature = new UserSignatures();
-            $userSignature->user_id = $userId;
-            $userSignature->file_path = $pathToStoreFile;
-            $userSignature->file_name = $fileName;
+                    $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
+                    $pathToStoreFile = $pathToStoreFile.$fileName;
+                }
+            }else{*/
+                //get the base-64 from data
+                $base64_str = substr($data['signatureData'], strpos($data['signatureData'], ",")+1);
+                //decode base64 string
+                $image = base64_decode($base64_str);
+                //dd($image);
+                $ext = 'png';
+                if($data['fileext']){
+                    $ext = $data['fileext'];
+                }
+                /*$f = finfo_open();
+                $ext = finfo_buffer($f, $image, FILEINFO_MIME_TYPE);
+                $ext = substr($ext,strpos($ext,'/')+1);*/
+                $fileName = time().'.'.$ext;
+                $pathToStoreFile = $userId . "/signatures/".$fileName;
 
-            $userSignature->save();
+                Storage::disk('public')->put($pathToStoreFile, $image);
+           /* }*/
 
-            DB::commit();
-            $message = 'Signature saved successfully.';
-            $response = array($this->common->success => true, 'message' => $message);
+            /*if($hasError == false){*/
+                Db::beginTransaction();
+
+                // create user signature model object to store the data
+                $userSignature = new UserSignatures();
+                $userSignature->user_id = $userId;
+                $userSignature->file_path = $pathToStoreFile;
+                $userSignature->file_name = $fileName;
+
+                $userSignature->save();
+
+                DB::commit();
+                $message = 'Signature saved successfully.';
+                $response = array($this->common->success => true, 'message' => $message);
+            /*}*/
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -467,7 +510,8 @@ class MyFilesRepository extends Repository
         }
         return Response::json($response);
     }
-    public function getUserSignatures(){
+    public function getUserSignatures($isLocal=''){
+        $signatures = [];
         try {
             $userId = Auth::user()->id;
             $signatures = User::where('id', $userId)->find(1)->userSignatures()->get();
@@ -486,6 +530,53 @@ class MyFilesRepository extends Repository
                     'message' => $e->getMessage()
                 ]
             );
+        }
+        if($isLocal=='true')
+            return $signatures;
+
+        return Response::json($response);
+    }
+    public function uploadSignature($data){
+
+        $userId = Auth::user()->id;
+        $validator = $this->validateFileUpload($data,'pic');
+
+        //VALIDATION FUNCTION
+        if ($validator->fails()) {
+            $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => $validator->errors()]);
+        } else {
+            try {
+                $originalName = $data['file']->getClientOriginalName();
+                $fileExt = $data['file']->getClientOriginalExtension();
+                $fileName = time().'.'.$fileExt;
+                $pathToStoreFile = $userId . "/signatures/";
+
+                $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
+
+                Db::beginTransaction();
+
+                // create user signature model object to store the data
+                $userSignature = new UserSignatures();
+                $userSignature->user_id = $userId;
+                $userSignature->file_path = $pathToStoreFile.$fileName;
+                $userSignature->file_name = $fileName;
+
+                $userSignature->save();
+
+                DB::commit();
+                $message = 'Signature saved successfully.';
+                $response = array($this->common->success => true, 'message' => $message);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $response = array(
+                    $this->common->success => false,
+                    'error' => [
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ]
+                );
+            }
         }
         return Response::json($response);
     }

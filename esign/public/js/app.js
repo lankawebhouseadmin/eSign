@@ -48337,6 +48337,40 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -48379,12 +48413,21 @@ __webpack_require__(72);
             showPreview: false,
             pdfFile: true,
             pad: 'closed',
-            fData: { signatureData: '' },
+            fData: { signatureData: '', type: '', replaceSignId: '', fileext: '' },
             docTools: false,
+            userSignatures: false,
+            userUploadSignatures: false,
             createSignature: false,
-            storedSignature: false,
+            storedSignature: 'closed',
             signaures: [],
-            signOptions: []
+            signOptions: [],
+            file: '',
+            overwriteSign: false,
+            isDocumentPasswordProtected: false,
+            passData: {
+                password: '',
+                passProtctedDocUrl: ''
+            }
         };
     },
     created: function created() {
@@ -48409,6 +48452,7 @@ __webpack_require__(72);
                 if (response.data.success) {
                     _this.folders = response.data.data.folders;
                     _this.documents = response.data.data.documents;
+                    _this.signaures = response.data.data.signatures;
                     _this.currentFolder.parentId = 0;
                     _this.folderNavigationArray = [];
                 } else {
@@ -48653,10 +48697,12 @@ __webpack_require__(72);
             this.formData.parentId = this.currentFolder.parentId;
             $('#modal-new-folder').modal('show');
         },
+        /**
+         * get document Preview
+         */
         getPreview: function getPreview(url) {
             var _this7 = this;
 
-            //var url = '//cdn.mozilla.net/pdfjs/helloworld.pdf';
             // Loaded via <script> tag, create shortcut to access PDF.js exports.
             var pdfjsLib = window['pdfjs-dist/build/pdf'];
 
@@ -48665,7 +48711,13 @@ __webpack_require__(72);
 
             pdfjsLib.disableWorker = true;
             // Asynchronous download of PDF
-            var loadingTask = pdfjsLib.getDocument(url);
+            if (this.passData.password) {
+                var loadingTask = pdfjsLib.getDocument({ url: this.passData.passProtctedDocUrl, password: this.passData.password });
+                this.isDocumentPasswordProtected = false;
+                this.passData.password = '';
+            } else {
+                var loadingTask = pdfjsLib.getDocument(url);
+            }
             loadingTask.promise.then(function (pdf) {
 
                 for (var num = 1; num <= pdf.numPages; num++) {
@@ -48674,7 +48726,7 @@ __webpack_require__(72);
                     var cnt = 0;
 
                     pdf.getPage(num).then(function (page) {
-
+                        _this7.showLoader = false;
                         cnt++;
                         var viewport = page.getViewport(1.2);
                         var canvas = document.createElement('canvas');
@@ -48695,10 +48747,6 @@ __webpack_require__(72);
                             e.preventDefault();
                             return false;
                         });
-                        /*canvas.addEventListener('drop', function(e){
-                            alert('sjds');
-                            console.log(e);
-                         });*/
                         var context = can.getContext('2d');
                         var renderCnt = {
                             canvasContext: context,
@@ -48715,8 +48763,18 @@ __webpack_require__(72);
                     });
                 }
             }, function (reason) {
+                console.log(reason);
                 // PDF loading error
-                console.error(reason);
+                var passError = reason.name;
+                if (passError == 'PasswordException') {
+                    /*if(reason.code == 1){
+                        notify.methods.notifyError('Document is Password protected.'+reason.message);
+                    }*/
+                    __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(reason.message);
+                    _this7.isDocumentPasswordProtected = true;
+                    _this7.passData.passProtctedDocUrl = url;
+                    _this7.showLoader = false;
+                }
             });
         },
 
@@ -48726,86 +48784,98 @@ __webpack_require__(72);
         openNewSignatureModal: function openNewSignatureModal() {
             this.pad = 'open';
         },
+        /**
+         * Close create new signature pop-up
+         */
         closeNewSignatureModal: function closeNewSignatureModal() {
             this.pad = 'closed';
-            this.undo();
+            if (this.userUploadSignatures == false) this.undo();
         },
         getSignatureModalClass: function getSignatureModalClass() {
             return this.pad;
         },
+        /**
+         * undo signature pad
+         */
         undo: function undo() {
             this.$refs.signaturePad.undoSignature();
         },
-        save: function save() {
-            var _this8 = this;
 
+        /**
+         * save signature pad canvas
+         */
+        save: function save() {
             //const { isEmpty, data } = this.$refs.signaturePad.saveSignature();
             var reurned = this.$refs.signaturePad.saveSignature();
             if (!reurned.isEmpty) {
                 this.showLoader = true;
-                var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'create-signature';
+                /*const url = common.data().serverPath + 'create-signature';*/
                 this.fData.signatureData = reurned.data;
-                Axios.post(url, this.fData).then(function (response) {
-                    _this8.showLoader = false;
+                this.fData.type = 'create';
+                this.fData.fileext = '';
+                if (this.signaures.length >= 6) {
+                    this.fData.replaceSignId = '';
+                    this.overwriteSign = true;
+                    this.showLoader = false;
+                } else {
+                    this.saveSignature();
+                }
+                /*Axios.post(url, this.fData).then((response) => {
+                    this.showLoader = false;
                     if (response.data.success) {
-                        __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess(response.data.message);
-                        _this8.pad = 'closed';
+                        notify.methods.notifySuccess(response.data.message);
+                        this.pad = 'closed';
                     } else {
                         if (response.data.error.statusCode === 103) {
-                            __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.errorDescription);
+                            notify.methods.notifyError(response.data.error.errorDescription);
                         } else {
-                            __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
+                            notify.methods.notifyError(response.data.error.message);
                         }
                     }
-                }).catch(function (error) {
-                    _this8.showLoader = false;
-                    __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please try again.');
-                });
+                })
+                .catch((error) => {
+                    this.showLoader = false;
+                    notify.methods.notifyError('Something went wrong. Please try again.');
+                })*/
             } else {
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Returned empty signature.Please try again.');
             }
         },
 
-        /*onBegin() {
-            console.log('=== Begin ===');
-        },
-        onEnd() {
-            console.log('=== End ===');
-        },*/
+        /**
+         * clear signature pad canvas
+         */
         clear: function clear() {
             this.$refs.signaturePad.clearSignature();
         },
+
         openTools: function openTools() {
             this.docTools = true;
         },
-        createSignature: function createSignature() {
-            this.createSignature = true;
-        },
         storedSignatures: function storedSignatures() {
-            var _this9 = this;
+            var _this8 = this;
 
-            this.storedSignature = true;
             this.showLoader = true;
             var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-signatures';
             Axios.get(url).then(function (response) {
-                //console.log(response);
-                _this9.showLoader = false;
+                console.log(response);
+                _this8.showLoader = false;
                 if (response.data.success) {
-                    _this9.signaures = response.data.signatures;
+                    _this8.signaures = response.data.signatures;
                 } else {
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
                 }
             }).catch(function (error) {
-                _this9.showLoader = false;
+                _this8.showLoader = false;
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please refresh the page.');
             });
         },
         changeSignOptions: function changeSignOptions() {
             var optss = this.signOptions;
             if (optss.includes('stored')) {
-                this.storedSignatures();
+                this.storedSignature = 'open';
             } else {
-                this.storedSignature = false;
+                this.storedSignature = 'closed';
             }
             if (optss.includes('create')) {
                 this.createSignature = true;
@@ -48813,42 +48883,13 @@ __webpack_require__(72);
                 this.createSignature = false;
             }
         },
-        canvasOnClick: function canvasOnClick(id) {
-            alert("id==>" + id);
-        },
-        /*handleDrop: function (e) {
-            console.log('handleDrop', /!*this.currentlyDragging,*!/ e.target);
-            /!*this.currentlyDragging = null;
-            this.loggedEvent = 'handleDrop';*!/
-        },
-        handleImageDrop: function (e) {
-            console.log('handleImageDrop', /!*this.currentlyDragging,*!/ e.target);
-            /!*this.currentlyDragging = null;
-            this.loggedEvent = 'handleImageDrop';*!/
-        },
-        handleDrag: function (e) {
-            console.log('handleDrag', e.srcElement);
-            /!*this.loggedEvent = 'handleDrag';
-            if (!this.currentlyDragging) {
-                this.currentlyDragging = e.srcElement;
-            }*!/
-        },*/
         initCanvas: function initCanvas(canvas, canvasContainerDiv) {
-            //alert('jkas');
             var ctx = canvas.getContext('2d');
             var signImage = new Image();
             $(canvasContainerDiv).each(function (index) {
 
                 var canvasContainer = $(this)[0];
                 var canvasObject = $("canvas", this)[0];
-                /*console.log(canvasContainer);
-                console.log(canvasObject);*/
-                /*var url = $(this).data('floorplan');
-                var canvas = window._canvas = new fabric.Canvas(canvasObject);
-                 canvas.setHeight(200);
-                canvas.setWidth(500);
-                canvas.setBackgroundImage(url, canvas.renderAll.bind(canvas));*/
-
                 var imageOffsetX, imageOffsetY;
 
                 function handleDragStart(e) {
@@ -48887,35 +48928,18 @@ __webpack_require__(72);
                         e.stopPropagation();
                     }
                     var img = document.querySelector('.signs img.img_dragging');
-
-                    /*console.log('img: ', img);
-                    console.log('imgsrc: ', img.src);
-                    console.log('width: ', img.width);
-                    console.log('height: ', img.height);
-                    console.log('event: ', e);*/
-
                     var offset = $(canvasObject).offset();
                     var y = e.clientY - (offset.top + imageOffsetY);
                     var x = e.clientX - (offset.left + imageOffsetX);
-                    /*console.log('x: ', x);
-                    console.log('y: ', y);*/
-                    var newImage = new Image(img /*, {
-                                                 width: img.width,
-                                                 height: img.height,
-                                                 left: x,
-                                                 top: y
-                                                 }*/);
+                    var newImage = new Image(img);
                     newImage.src = img.src;
                     newImage.width = img.width;
                     newImage.height = img.height;
                     signImage = newImage;
-                    /*console.log('ctx:',ctx);*/
-                    /*ctx.drawImage(newImage, 0,0);*/
                     newImage.onload = function () {
                         //ctx.clearRect(0,0,canvas.width,canvas.height);
                         ctx.drawImage(signImage, x, y, img.width, img.height);
                     };
-                    //canvas.add(newImage);
                     return false;
                 }
 
@@ -48935,8 +48959,6 @@ __webpack_require__(72);
                 canvasContainer.addEventListener('dragleave', handleDragLeave, false);
                 canvasContainer.addEventListener('drop', handleDrop, false);
 
-                /*var canvas=document.getElementById("canvas");
-                var ctx=canvas.getContext("2d");*/
                 var canvasOffset = $(canvasObject).offset();
                 var offsetX = canvasOffset.left;
                 var offsetY = canvasOffset.top;
@@ -48970,7 +48992,6 @@ __webpack_require__(72);
                     canMouseY = parseInt(e.clientY - offsetY);
                     // if the drag flag is set, clear the canvas and draw the image
                     if (isDragging) {
-                        /*console.log(ctx);*/
                         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
                         //ctx.drawImage(signImage,canMouseX-128/2,canMouseY-120/2,128,120);
                         ctx.drawImage(signImage, canMouseX - signImage.width / 2, canMouseY - signImage.height / 2, signImage.width, signImage.height);
@@ -48989,6 +49010,97 @@ __webpack_require__(72);
                     handleMouseOut(e);
                 });
             });
+        },
+        showHideUserSignatures: function showHideUserSignatures() {
+            if (this.userSignatures == true) {
+                this.userSignatures = false;
+            } else {
+                this.userSignatures = true;
+            }
+        },
+        createNewSignature: function createNewSignature() {
+            this.userUploadSignatures = false;
+            this.openNewSignatureModal();
+        },
+        uploadSignature: function uploadSignature() {
+            this.userUploadSignatures = true;
+            this.openNewSignatureModal();
+        },
+        saveUserSignatures: function saveUserSignatures() {
+            var _this9 = this;
+
+            this.showLoader = true;
+            this.getBase64(this.file).then(function (data) {
+                return _this9.fData.signatureData = data;
+            });
+
+            this.fData.type = 'upload';
+            if (this.signaures.length >= 6) {
+                this.fData.replaceSignId = '';
+                this.overwriteSign = true;
+                this.showLoader = false;
+            } else {
+                this.saveSignature();
+            }
+        },
+        handleFileUpload: function handleFileUpload() {
+            this.file = this.$refs.file.files[0];
+        },
+        /**
+         * save signature to database
+         */
+        saveSignature: function saveSignature() {
+            var _this10 = this;
+
+            this.showLoader = true;
+            var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'create-signature';
+
+            Axios.post(url, this.fData).then(function (response) {
+                _this10.storedSignatures();
+                _this10.showLoader = false;
+                if (response.data.success) {
+                    __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess(response.data.message);
+                    _this10.pad = 'closed';
+                } else {
+                    if (response.data.error.statusCode === 103) {
+                        __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.errorDescription);
+                    } else {
+                        __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
+                    }
+                }
+            }).catch(function (error) {
+                _this10.showLoader = false;
+                __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please try again.');
+            });
+        },
+        replaceSignature: function replaceSignature(signatureId) {
+            this.fData.replaceSignId = signatureId;
+            this.overwriteSign = false;
+            this.saveSignature();
+        },
+        getBase64: function getBase64(file) {
+            var _this11 = this;
+
+            return new Promise(function (resolve, reject) {
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                _this11.fData.fileext = file.name.split('.').pop().toLowerCase();
+                reader.onload = function () {
+                    return resolve(reader.result);
+                };
+                reader.onerror = function (error) {
+                    return reject(error);
+                };
+            });
+        },
+        closeDocPassword: function closeDocPassword() {
+            this.isDocumentPasswordProtected = false;
+            this.passData.passProtctedDocUrl = '';
+            this.passData.password = '';
+        },
+        getUserPass: function getUserPass() {
+            this.showLoader = true;
+            this.getPreview(this.passData.passProtctedDocUrl);
         }
     },
     mounted: function mounted() {}
@@ -56885,17 +56997,57 @@ var render = function() {
                 "a",
                 {
                   staticClass: "link-btn",
-                  attrs: { title: "New Signature" },
-                  on: { click: _vm.openNewSignatureModal }
+                  attrs: { title: "User Signatures" },
+                  on: { click: _vm.showHideUserSignatures }
                 },
                 [
                   _c("i", {
                     staticClass: "fa fa-edit mr-2",
                     attrs: { "aria-hidden": "true" }
                   }),
-                  _vm._v("New Signature")
+                  _vm._v("User Signatures")
                 ]
-              )
+              ),
+              _vm._v(" "),
+              _vm.userSignatures
+                ? _c("ul", [
+                    _c("li", [
+                      _c(
+                        "a",
+                        {
+                          staticClass: "link-btn",
+                          attrs: { title: "New Signature" },
+                          on: { click: _vm.createNewSignature }
+                        },
+                        [
+                          _c("i", {
+                            staticClass: "fa fa-edit mr-2",
+                            attrs: { "aria-hidden": "true" }
+                          }),
+                          _vm._v("New Signature")
+                        ]
+                      )
+                    ]),
+                    _vm._v(" "),
+                    _c("li", [
+                      _c(
+                        "a",
+                        {
+                          staticClass: "link-btn",
+                          attrs: { title: "Upload Signature" },
+                          on: { click: _vm.uploadSignature }
+                        },
+                        [
+                          _c("i", {
+                            staticClass: "fa fa-upload mr-2",
+                            attrs: { "aria-hidden": "true" }
+                          }),
+                          _vm._v("Upload Signature.")
+                        ]
+                      )
+                    ])
+                  ])
+                : _vm._e()
             ]),
             _vm._v(" "),
             !_vm.showDeleteButton && _vm.folders.length
@@ -57065,64 +57217,37 @@ var render = function() {
               ])
             : _vm._e(),
           _vm._v(" "),
-          _vm._m(2),
-          _vm._v(" "),
-          _vm.storedSignature
-            ? _c("div", [
-                _vm.signaures.length
-                  ? _c(
-                      "ul",
-                      { staticClass: "signs" },
-                      _vm._l(_vm.signaures, function(signaure, index) {
-                        return _c("li", [
-                          _c(
-                            "a",
-                            {
-                              staticClass: "link-btn",
-                              attrs: { id: signaure.id }
-                            },
-                            [
-                              _c("img", {
-                                staticStyle: { width: "50px", height: "50px" },
-                                attrs: {
-                                  src: signaure.file_path,
-                                  draggable: true
-                                },
-                                on: {
-                                  drag: _vm.handleDrag,
-                                  drop: _vm.handleImageDrop
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "span",
-                                {
-                                  staticClass: "folder-text",
-                                  attrs: { title: signaure.file_name }
-                                },
-                                [_vm._v(_vm._s(signaure.file_name))]
-                              )
-                            ]
-                          ),
+          _c("div", { staticClass: "signsDiv", class: _vm.storedSignature }, [
+            _vm.signaures.length
+              ? _c(
+                  "ul",
+                  { staticClass: "signs" },
+                  _vm._l(_vm.signaures, function(signaure, index) {
+                    return _c("li", [
+                      _c(
+                        "a",
+                        { staticClass: "link-btn", attrs: { id: signaure.id } },
+                        [
+                          _c("img", {
+                            staticStyle: { width: "50px", height: "50px" },
+                            attrs: { src: signaure.file_path, draggable: true }
+                          }),
                           _vm._v(" "),
                           _c(
                             "span",
                             {
-                              staticClass: "document-delete pull-right",
-                              on: {
-                                click: function($event) {
-                                  _vm.deleteDocument(_vm.document.id)
-                                }
-                              }
+                              staticClass: "folder-text",
+                              attrs: { title: signaure.file_name }
                             },
-                            [_c("i", { staticClass: "fa fa-trash " })]
+                            [_vm._v(_vm._s(signaure.file_name))]
                           )
-                        ])
-                      })
-                    )
-                  : _vm._e()
-              ])
-            : _vm._e()
+                        ]
+                      )
+                    ])
+                  })
+                )
+              : _vm._e()
+          ])
         ])
       ]),
       _vm._v(" "),
@@ -57142,7 +57267,7 @@ var render = function() {
                 }
               },
               [
-                _vm._m(3),
+                _vm._m(2),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-body" }, [
                   _c("div", { staticClass: "box-body" }, [
@@ -57180,7 +57305,7 @@ var render = function() {
                   ])
                 ]),
                 _vm._v(" "),
-                _vm._m(4)
+                _vm._m(3)
               ]
             )
           ])
@@ -57197,53 +57322,116 @@ var render = function() {
         [
           _c("div", { staticClass: "modal-dialog" }, [
             _c("div", { staticClass: "modal-content" }, [
-              _c(
-                "form",
-                {
-                  staticClass: "form-horizontal",
-                  on: {
-                    submit: function($event) {
-                      $event.preventDefault()
-                      return _vm.createSignature($event)
-                    }
-                  }
-                },
-                [
-                  _c("div", { staticClass: "modal-header" }, [
-                    _c("h4", { staticClass: "modal-title" }, [
-                      _vm._v("Create New Signature")
-                    ]),
-                    _vm._v(" "),
-                    _c(
-                      "button",
-                      {
-                        staticClass: "close",
-                        attrs: { type: "button", "data-dismiss": "modal" },
-                        on: { click: _vm.closeNewSignatureModal }
-                      },
-                      [_vm._v("×")]
-                    )
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "modal-body" }, [
-                    _c(
+              _c("div", { staticClass: "modal-header" }, [
+                _c("h4", { staticClass: "modal-title" }, [
+                  _vm._v("Create New Signature")
+                ]),
+                _vm._v(" "),
+                _c(
+                  "button",
+                  {
+                    staticClass: "close",
+                    attrs: { type: "button", "data-dismiss": "modal" },
+                    on: { click: _vm.closeNewSignatureModal }
+                  },
+                  [_vm._v("×")]
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "modal-body" }, [
+                _vm.userUploadSignatures && !_vm.overwriteSign
+                  ? _c("div", { staticClass: "box-body wrapper" }, [
+                      _c("label", [_vm._v("Upload Signature File")]),
+                      _vm._v(" "),
+                      _c("input", {
+                        ref: "file",
+                        attrs: { type: "file", accept: "image/*", id: "file" },
+                        on: {
+                          change: function($event) {
+                            _vm.handleFileUpload()
+                          }
+                        }
+                      })
+                    ])
+                  : !_vm.userUploadSignatures && !_vm.overwriteSign
+                  ? _c(
                       "div",
                       { staticClass: "box-body wrapper" },
                       [
                         _c("VueSignaturePad", {
                           ref: "signaturePad",
-                          attrs: {
-                            width: "500px",
-                            height: "240px",
-                            options: "{ onBegin, onEnd }"
-                          }
+                          attrs: { width: "500px", height: "240px" }
                         })
                       ],
                       1
                     )
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "modal-footer" }, [
+                  : _vm._e(),
+                _vm._v(" "),
+                _vm.overwriteSign
+                  ? _c("div", { staticClass: "signatureList" }, [
+                      _c("p", [
+                        _vm._v("Select Signature to replace with new:")
+                      ]),
+                      _vm._v(" "),
+                      _vm.signaures.length
+                        ? _c(
+                            "ul",
+                            {},
+                            _vm._l(_vm.signaures, function(signaure, index) {
+                              return _c("li", [
+                                _c(
+                                  "a",
+                                  {
+                                    staticClass: "link-btn",
+                                    attrs: { id: signaure.id },
+                                    on: {
+                                      click: function($event) {
+                                        _vm.replaceSignature(signaure.id)
+                                      }
+                                    }
+                                  },
+                                  [
+                                    _c("img", {
+                                      staticStyle: {
+                                        width: "50px",
+                                        height: "50px"
+                                      },
+                                      attrs: {
+                                        src: signaure.file_path,
+                                        draggable: true
+                                      }
+                                    }),
+                                    _vm._v(" "),
+                                    _c(
+                                      "span",
+                                      {
+                                        staticClass: "folder-text",
+                                        attrs: { title: signaure.file_name }
+                                      },
+                                      [_vm._v(_vm._s(signaure.file_name))]
+                                    )
+                                  ]
+                                )
+                              ])
+                            })
+                          )
+                        : _vm._e()
+                    ])
+                  : _vm._e()
+              ]),
+              _vm._v(" "),
+              _vm.userUploadSignatures
+                ? _c("div", { staticClass: "modal-footer" }, [
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-blue form-btn",
+                        on: { click: _vm.saveUserSignatures }
+                      },
+                      [_vm._v("Save")]
+                    )
+                  ])
+                : _c("div", { staticClass: "modal-footer" }, [
                     _c(
                       "button",
                       {
@@ -57271,12 +57459,87 @@ var render = function() {
                       [_vm._v("Clear")]
                     )
                   ])
-                ]
-              )
             ])
           ])
         ]
       ),
+      _vm._v(" "),
+      _vm.isDocumentPasswordProtected
+        ? _c("div", { staticClass: "SignatureModal" }, [
+            _c("div", { staticClass: "modal-dialog" }, [
+              _c(
+                "form",
+                {
+                  staticClass: "form-horizontal",
+                  attrs: { id: "passform" },
+                  on: {
+                    submit: function($event) {
+                      $event.preventDefault()
+                      return _vm.getUserPass($event)
+                    }
+                  }
+                },
+                [
+                  _c("div", { staticClass: "modal-content" }, [
+                    _c("div", { staticClass: "modal-header" }, [
+                      _c("h4", { staticClass: "modal-title" }, [
+                        _vm._v("Provide Document Passsword")
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "button",
+                        {
+                          staticClass: "close",
+                          attrs: { type: "button", "data-dismiss": "modal" },
+                          on: { click: _vm.closeDocPassword }
+                        },
+                        [_vm._v("×")]
+                      )
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "modal-body" }, [
+                      _c("div", { staticClass: "form-froup" }, [
+                        _c("label", [_vm._v("Document Passord:")]),
+                        _vm._v(" "),
+                        _c("input", {
+                          directives: [
+                            {
+                              name: "model",
+                              rawName: "v-model",
+                              value: _vm.passData.password,
+                              expression: "passData.password"
+                            }
+                          ],
+                          staticClass: "form-control",
+                          attrs: {
+                            type: "password",
+                            placeholder: "Folder Name",
+                            required: ""
+                          },
+                          domProps: { value: _vm.passData.password },
+                          on: {
+                            input: function($event) {
+                              if ($event.target.composing) {
+                                return
+                              }
+                              _vm.$set(
+                                _vm.passData,
+                                "password",
+                                $event.target.value
+                              )
+                            }
+                          }
+                        })
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _vm._m(4)
+                  ])
+                ]
+              )
+            ])
+          ])
+        : _vm._e(),
       _vm._v(" "),
       _c("notifications", { attrs: { "animation-type": "velocity" } }),
       _vm._v(" "),
@@ -57319,65 +57582,6 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", [
-      _c("ul", { staticClass: "signs" }, [
-        _c("li", [
-          _c("a", { staticClass: "link-btn", attrs: { id: "1" } }, [
-            _c("img", {
-              staticStyle: { width: "50px", height: "50px" },
-              attrs: {
-                src:
-                  "http://localhost:8000/storage/1/signatures/1543995430.png",
-                draggable: "true"
-              }
-            }),
-            _vm._v(" "),
-            _c(
-              "span",
-              {
-                staticClass: "folder-text",
-                attrs: { title: "1543995430.png" }
-              },
-              [_vm._v("1543995430.png")]
-            )
-          ]),
-          _vm._v(" "),
-          _c("span", { staticClass: "document-delete pull-right" }, [
-            _c("i", { staticClass: "fa fa-trash " })
-          ])
-        ]),
-        _c("li", [
-          _c("a", { staticClass: "link-btn", attrs: { id: "2" } }, [
-            _c("img", {
-              staticStyle: { width: "50px", height: "50px" },
-              attrs: {
-                src:
-                  "http://localhost:8000/storage/1/signatures/1543996234.png",
-                draggable: "true"
-              }
-            }),
-            _vm._v(" "),
-            _c(
-              "span",
-              {
-                staticClass: "folder-text",
-                attrs: { title: "1543996234.png" }
-              },
-              [_vm._v("1543996234.png")]
-            )
-          ]),
-          _vm._v(" "),
-          _c("span", { staticClass: "document-delete pull-right" }, [
-            _c("i", { staticClass: "fa fa-trash " })
-          ])
-        ])
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
     return _c("div", { staticClass: "modal-header" }, [
       _c("h4", { staticClass: "modal-title" }, [_vm._v("Create New Folder")]),
       _vm._v(" "),
@@ -57400,6 +57604,18 @@ var staticRenderFns = [
         "button",
         { staticClass: "btn btn-blue form-btn", attrs: { type: "submit" } },
         [_vm._v("Create Folder")]
+      )
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "modal-footer" }, [
+      _c(
+        "button",
+        { staticClass: "btn btn-blue form-btn", attrs: { type: "submit" } },
+        [_vm._v("Save")]
       )
     ])
   }

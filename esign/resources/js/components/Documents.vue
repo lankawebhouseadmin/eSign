@@ -83,7 +83,11 @@
                         <a class="link-btn" title="New Folder" @click="openCreateFolderModal"><i class="fa fa-folder-o mr-2" aria-hidden="true"></i>New Folder</a>
                     </li>
                     <li>
-                        <a class="link-btn" title="New Signature" @click="openNewSignatureModal"><i class="fa fa-edit mr-2" aria-hidden="true"></i>New Signature</a>
+                        <a class="link-btn" title="User Signatures" @click="showHideUserSignatures"><i class="fa fa-edit mr-2" aria-hidden="true"></i>User Signatures</a>
+                        <ul v-if="userSignatures">
+                            <li><a class="link-btn" title="New Signature" @click="createNewSignature"><i class="fa fa-edit mr-2" aria-hidden="true"></i>New Signature</a></li>
+                            <li><a title="Upload Signature" class="link-btn" @click="uploadSignature"><i aria-hidden="true" class="fa fa-upload mr-2"></i>Upload Signature.</a></li>
+                        </ul>
                     </li>
                     <li v-if="!showDeleteButton && folders.length" class="mt-3">
                         <a class="link-btn color-red" title="New Folder" @click="showHideDeleteOption"><i class="fa fa-trash mr-2" aria-hidden="true"></i>Remove Folder</a>
@@ -107,19 +111,15 @@
                         </li>
                     </ul>
                 </div>
-                <div><ul class="signs"><li><a id="1" class="link-btn"><img src="http://localhost:8000/storage/1/signatures/1543995430.png" draggable="true" style="width: 50px; height: 50px;"> <span title="1543995430.png" class="folder-text">1543995430.png</span></a> <span class="document-delete pull-right"><i class="fa fa-trash "></i></span></li><li><a id="2" class="link-btn"><img src="http://localhost:8000/storage/1/signatures/1543996234.png" draggable="true" style="width: 50px; height: 50px;"> <span title="1543996234.png" class="folder-text">1543996234.png</span></a> <span class="document-delete pull-right"><i class="fa fa-trash "></i></span></li></ul></div>
-                <div v-if="storedSignature">
+                <!--<div><ul class="signs"><li><a id="1" class="link-btn"><img src="http://localhost:8000/storage/1/signatures/1543995430.png" draggable="true" style="width: 50px; height: 50px;"> <span title="1543995430.png" class="folder-text">1543995430.png</span></a> <span class="document-delete pull-right"><i class="fa fa-trash "></i></span></li><li><a id="2" class="link-btn"><img src="http://localhost:8000/storage/1/signatures/1543996234.png" draggable="true" style="width: 50px; height: 50px;"> <span title="1543996234.png" class="folder-text">1543996234.png</span></a> <span class="document-delete pull-right"><i class="fa fa-trash "></i></span></li></ul></div>-->
+                <div v-bind:class="storedSignature" class="signsDiv">
                     <ul v-if="signaures.length" class="signs">
                         <li v-for="(signaure, index) in signaures">
                             <a class="link-btn" v-bind:id="signaure.id">
-                                <img v-bind:src="signaure.file_path" v-bind:draggable=true v-on:drag="handleDrag" v-on:drop="handleImageDrop" style="width:50px;height:50px" />
+                                <img v-bind:src="signaure.file_path" v-bind:draggable=true  style="width:50px;height:50px" />
                                 <span class="folder-text" v-bind:title="signaure.file_name">{{signaure.file_name}}</span>
 
                             </a>
-                            <span class="document-delete pull-right" @click="deleteDocument(document.id)">
-                                    <i class="fa fa-trash "></i>
-                                </span>
-
                         </li>
                     </ul>
                 </div>
@@ -158,7 +158,7 @@
         <div v-bind:class="getSignatureModalClass()" class="modal1 SignatureModal" id="modal-new-signature">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form v-on:submit.prevent="createSignature" class="form-horizontal">
+
                         <!-- Modal Header -->
                         <div class="modal-header">
                             <h4 class="modal-title">Create New Signature</h4>
@@ -167,24 +167,58 @@
 
                         <!-- Modal body -->
                         <div class="modal-body">
-                            <div class="box-body wrapper">
-                                <VueSignaturePad
-                                        width="500px"
-                                        height="240px"
-                                        ref="signaturePad"
-                                        options="{ onBegin, onEnd }"
-                                />
+                            <div v-if="userUploadSignatures && !overwriteSign" class="box-body wrapper">
+                                <label>Upload Signature File</label>
+                                <input type="file" accept="image/*" id="file" ref="file" v-on:change="handleFileUpload()"/>
+                            </div>
+                            <div v-else-if="!userUploadSignatures && !overwriteSign" class="box-body wrapper">
+                                <VueSignaturePad width="500px" height="240px" ref="signaturePad" />
                                 <!--<canvas class="signature"></canvas>-->
+                            </div>
+                            <div v-if="overwriteSign" class="signatureList">
+                                <p>Select Signature to replace with new:</p>
+                                <ul v-if="signaures.length" class="">
+                                    <li v-for="(signaure, index) in signaures">
+                                        <a class="link-btn" @click="replaceSignature(signaure.id)" v-bind:id="signaure.id">
+                                            <img v-bind:src="signaure.file_path" v-bind:draggable=true  style="width:50px;height:50px" />
+                                            <span class="folder-text" v-bind:title="signaure.file_name">{{signaure.file_name}}</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                         <!-- Modal footer -->
-                        <div class="modal-footer">
+                        <div v-if="userUploadSignatures" class="modal-footer">
+                            <button @click="saveUserSignatures" class="btn btn-blue form-btn">Save</button>
+                        </div>
+                        <div v-else class="modal-footer">
                             <button @click="save" class="btn btn-blue form-btn">Save</button>
                             <button @click="undo" class="btn btn-danger form-btn">Undo</button>
                             <button @click="clear" class="btn btn-danger form-btn">Clear</button>
                         </div>
-                    </form>
+
                 </div>
+            </div>
+        </div>
+        <div v-if="isDocumentPasswordProtected" class="SignatureModal">
+            <div class="modal-dialog">
+                <form v-on:submit.prevent="getUserPass" id="passform" class="form-horizontal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Provide Document Passsword</h4>
+                            <button type="button"@click="closeDocPassword" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-froup">
+                                <label>Document Passord:</label>
+                                <input type="password" class="form-control" placeholder="Folder Name" required v-model="passData.password" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-blue form-btn">Save</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
         <notifications animation-type="velocity"/>
@@ -234,12 +268,21 @@
                 showPreview: false,
                 pdfFile: true,
                 pad: 'closed',
-                fData:{signatureData:''},
+                fData:{signatureData:'',type:'',replaceSignId:'',fileext:''},
                 docTools:false,
+                userSignatures:false,
+                userUploadSignatures:false,
                 createSignature:false,
-                storedSignature:false,
+                storedSignature:'closed',
                 signaures: [],
                 signOptions: [],
+                file: '',
+                overwriteSign: false,
+                isDocumentPasswordProtected:false,
+                passData:{
+                    password:'',
+                    passProtctedDocUrl:''
+                }
             }
         },
         created: function () {
@@ -262,6 +305,7 @@
                     if (response.data.success) {
                         this.folders = response.data.data.folders;
                         this.documents = response.data.data.documents;
+                        this.signaures = response.data.data.signatures;
                         this.currentFolder.parentId = 0;
                         this.folderNavigationArray = [];
                     } else {
@@ -505,9 +549,11 @@
                 this.formData.parentId = this.currentFolder.parentId;
                 $('#modal-new-folder').modal('show');
             },
+            /**
+             * get document Preview
+             */
             getPreview : function(url){
 
-                //var url = '//cdn.mozilla.net/pdfjs/helloworld.pdf';
                 // Loaded via <script> tag, create shortcut to access PDF.js exports.
                 var pdfjsLib = window['pdfjs-dist/build/pdf'];
 
@@ -516,7 +562,13 @@
 
                 pdfjsLib.disableWorker = true;
                 // Asynchronous download of PDF
-                var loadingTask = pdfjsLib.getDocument(url);
+                if(this.passData.password){
+                    var loadingTask = pdfjsLib.getDocument({ url: this.passData.passProtctedDocUrl, password: this.passData.password });
+                    this.isDocumentPasswordProtected = false;
+                    this.passData.password = '';
+                }else{
+                    var loadingTask = pdfjsLib.getDocument(url);
+                }
                 loadingTask.promise.then((pdf) => {
 
                     for(var num = 1; num <= pdf.numPages; num++) {
@@ -525,7 +577,7 @@
                         var cnt=0;
 
                         pdf.getPage(num).then((page) => {
-
+                            this.showLoader = false;
                             cnt++;
                             var viewport = page.getViewport(1.2);
                             var canvas = document.createElement('canvas');
@@ -544,11 +596,6 @@
                             can.id = "page"+cnt;
                             canvas.addEventListener('dragover', function(e){e.preventDefault();
                                 return false;});
-                            /*canvas.addEventListener('drop', function(e){
-                                alert('sjds');
-                                console.log(e);
-
-                            });*/
                             var context = can.getContext('2d');
                             var renderCnt = {
                                 canvasContext: context,
@@ -562,14 +609,21 @@
 
                             page.render(renderContext);
                             this.initCanvas(can,'#docPage'+cnt);
-
-
                         });
-
                     }
-                }, function (reason) {
+                }, (reason)=> {
+                    console.log(reason);
                     // PDF loading error
-                    console.error(reason);
+                    var passError = reason.name
+                    if(passError=='PasswordException'){
+                        /*if(reason.code == 1){
+                            notify.methods.notifyError('Document is Password protected.'+reason.message);
+                        }*/
+                        notify.methods.notifyError(reason.message);
+                        this.isDocumentPasswordProtected = true;
+                        this.passData.passProtctedDocUrl = url;
+                        this.showLoader = false;
+                    }
                 });
             },
 
@@ -579,24 +633,43 @@
             openNewSignatureModal: function() {
                 this.pad = 'open';
             },
+            /**
+             * Close create new signature pop-up
+             */
             closeNewSignatureModal: function() {
                 this.pad = 'closed';
-                this.undo();
+                if(this.userUploadSignatures == false)
+                    this.undo();
             },
             getSignatureModalClass: function(){
                 return this.pad;
             },
+            /**
+             * undo signature pad
+             */
             undo() {
                 this.$refs.signaturePad.undoSignature();
             },
+            /**
+             * save signature pad canvas
+             */
             save() {
                 //const { isEmpty, data } = this.$refs.signaturePad.saveSignature();
                 const reurned = this.$refs.signaturePad.saveSignature();
                 if(!reurned.isEmpty){
                     this.showLoader = true;
-                    const url = common.data().serverPath + 'create-signature';
+                    /*const url = common.data().serverPath + 'create-signature';*/
                     this.fData.signatureData = reurned.data;
-                    Axios.post(url, this.fData).then((response) => {
+                    this.fData.type = 'create';
+                    this.fData.fileext = '';
+                    if(this.signaures.length >= 6){
+                        this.fData.replaceSignId='';
+                        this.overwriteSign = true;
+                        this.showLoader = false;
+                    }else{
+                        this.saveSignature();
+                    }
+                    /*Axios.post(url, this.fData).then((response) => {
                         this.showLoader = false;
                         if (response.data.success) {
                             notify.methods.notifySuccess(response.data.message);
@@ -612,34 +685,28 @@
                     .catch((error) => {
                         this.showLoader = false;
                         notify.methods.notifyError('Something went wrong. Please try again.');
-                    })
+                    })*/
                 }else{
                     notify.methods.notifyError('Returned empty signature.Please try again.');
                 }
 
 
             },
-            /*onBegin() {
-                console.log('=== Begin ===');
-            },
-            onEnd() {
-                console.log('=== End ===');
-            },*/
+            /**
+             * clear signature pad canvas
+             */
             clear:function () {
                 this.$refs.signaturePad.clearSignature();
             },
+
             openTools: function(){
                 this.docTools=true;
             },
-            createSignature: function(){
-                this.createSignature=true;
-            },
             storedSignatures: function(){
-                this.storedSignature=true;
                 this.showLoader = true;
                 const url = common.data().serverPath + 'get-signatures';
                 Axios.get(url).then((response) => {
-                    //console.log(response);
+                    console.log(response);
                     this.showLoader = false;
                     if (response.data.success) {
                         this.signaures = response.data.signatures;
@@ -655,9 +722,9 @@
             changeSignOptions: function(){
                 var optss = this.signOptions;
                 if(optss.includes('stored')){
-                    this.storedSignatures();
+                    this.storedSignature='open';
                 }else{
-                    this.storedSignature=false;
+                    this.storedSignature='closed';
                 }
                 if(optss.includes('create')){
                     this.createSignature=true;
@@ -666,43 +733,13 @@
                 }
 
             },
-            canvasOnClick: function (id) {
-                alert("id==>"+id);
-            },
-            /*handleDrop: function (e) {
-                console.log('handleDrop', /!*this.currentlyDragging,*!/ e.target);
-                /!*this.currentlyDragging = null;
-                this.loggedEvent = 'handleDrop';*!/
-            },
-            handleImageDrop: function (e) {
-                console.log('handleImageDrop', /!*this.currentlyDragging,*!/ e.target);
-                /!*this.currentlyDragging = null;
-                this.loggedEvent = 'handleImageDrop';*!/
-            },
-            handleDrag: function (e) {
-                console.log('handleDrag', e.srcElement);
-                /!*this.loggedEvent = 'handleDrag';
-                if (!this.currentlyDragging) {
-                    this.currentlyDragging = e.srcElement;
-                }*!/
-            },*/
             initCanvas: function(canvas,canvasContainerDiv) {
-                //alert('jkas');
                 var ctx = canvas.getContext('2d');
                 var signImage = new Image();
                 $(canvasContainerDiv).each(function(index) {
 
                     var canvasContainer = $(this)[0];
                     var canvasObject = $("canvas", this)[0];
-                    /*console.log(canvasContainer);
-                    console.log(canvasObject);*/
-                    /*var url = $(this).data('floorplan');
-                    var canvas = window._canvas = new fabric.Canvas(canvasObject);
-
-                    canvas.setHeight(200);
-                    canvas.setWidth(500);
-                    canvas.setBackgroundImage(url, canvas.renderAll.bind(canvas));*/
-
                     var imageOffsetX, imageOffsetY;
 
                     function handleDragStart(e) {
@@ -710,7 +747,6 @@
                             img.classList.remove('img_dragging');
                         });
                         this.classList.add('img_dragging');
-
 
                         var imageOffset = $(this).offset();
                         imageOffsetX = e.clientX - imageOffset.left;
@@ -742,35 +778,18 @@
                             e.stopPropagation();
                         }
                         var img = document.querySelector('.signs img.img_dragging');
-
-                        /*console.log('img: ', img);
-                        console.log('imgsrc: ', img.src);
-                        console.log('width: ', img.width);
-                        console.log('height: ', img.height);
-                        console.log('event: ', e);*/
-
                         var offset = $(canvasObject).offset();
                         var y = e.clientY - (offset.top + imageOffsetY);
                         var x = e.clientX - (offset.left + imageOffsetX);
-                        /*console.log('x: ', x);
-                        console.log('y: ', y);*/
-                        var newImage = new Image(img/*, {
-                            width: img.width,
-                            height: img.height,
-                            left: x,
-                            top: y
-                        }*/);
+                        var newImage = new Image(img);
                         newImage.src=img.src;
                         newImage.width=img.width;
                         newImage.height=img.height;
                         signImage = newImage;
-                        /*console.log('ctx:',ctx);*/
-                        /*ctx.drawImage(newImage, 0,0);*/
                         newImage.onload = function(){
                             //ctx.clearRect(0,0,canvas.width,canvas.height);
                             ctx.drawImage(signImage,x,y,img.width,img.height);
                         };
-                        //canvas.add(newImage);
                         return false;
                     }
 
@@ -790,9 +809,6 @@
                     canvasContainer.addEventListener('dragleave', handleDragLeave, false);
                     canvasContainer.addEventListener('drop', handleDrop, false);
 
-
-                    /*var canvas=document.getElementById("canvas");
-                    var ctx=canvas.getContext("2d");*/
                     var canvasOffset=$(canvasObject).offset();
                     var offsetX=canvasOffset.left;
                     var offsetY=canvasOffset.top;
@@ -800,7 +816,6 @@
                     var canvasHeight=canvas.height;
                     var isDragging=false;
                     var canMouseX = 0, canMouseY =0;
-
 
                     function handleMouseDown(e){
                         canMouseX=parseInt(e.clientX-offsetX);
@@ -826,7 +841,6 @@
                         canMouseY=parseInt(e.clientY-offsetY);
                         // if the drag flag is set, clear the canvas and draw the image
                         if(isDragging){
-                            /*console.log(ctx);*/
                             ctx.clearRect(0,0,canvasWidth,canvasHeight);
                             //ctx.drawImage(signImage,canMouseX-128/2,canMouseY-120/2,128,120);
                             ctx.drawImage(signImage,canMouseX-signImage.width/2,canMouseY-signImage.height/2,signImage.width,signImage.height);
@@ -838,6 +852,88 @@
                     $(canvasObject).mouseout(function(e){handleMouseOut(e);});
                 });
             },
+            showHideUserSignatures :function(){
+                if(this.userSignatures == true){
+                    this.userSignatures = false;
+                }else{
+                    this.userSignatures = true;
+                }
+            },
+            createNewSignature: function(){
+                this.userUploadSignatures = false;
+                this.openNewSignatureModal();
+            },
+            uploadSignature: function(){
+                this.userUploadSignatures = true;
+                this.openNewSignatureModal();
+            },
+            saveUserSignatures: function () {
+                this.showLoader = true;
+                this.getBase64(this.file).then(
+                    data => this.fData.signatureData = data
+                );
+
+                this.fData.type = 'upload';
+                if(this.signaures.length >= 6){
+                    this.fData.replaceSignId='';
+                    this.overwriteSign = true;
+                    this.showLoader = false;
+                }else{
+                    this.saveSignature();
+                }
+            },
+            handleFileUpload: function(){
+                this.file = this.$refs.file.files[0];
+            },
+            /**
+             * save signature to database
+             */
+            saveSignature: function(){
+                this.showLoader = true;
+                const url = common.data().serverPath + 'create-signature';
+
+                Axios.post(url, this.fData).then((response) => {
+                    this.storedSignatures();
+                    this.showLoader = false;
+                    if (response.data.success) {
+                        notify.methods.notifySuccess(response.data.message);
+                        this.pad = 'closed';
+                    } else {
+                        if (response.data.error.statusCode === 103) {
+                            notify.methods.notifyError(response.data.error.errorDescription);
+                        } else {
+                            notify.methods.notifyError(response.data.error.message);
+                        }
+                    }
+                })
+                .catch((error) => {
+                        this.showLoader = false;
+                    notify.methods.notifyError('Something went wrong. Please try again.');
+                })
+            },
+            replaceSignature: function(signatureId){
+                this.fData.replaceSignId = signatureId;
+                this.overwriteSign = false;
+                this.saveSignature();
+            },
+            getBase64: function(file){
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    this.fData.fileext = file.name.split('.').pop().toLowerCase();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
+            },
+            closeDocPassword: function(){
+                this.isDocumentPasswordProtected = false;
+                this.passData.passProtctedDocUrl = '';
+                this.passData.password = '';
+            },
+            getUserPass: function(){
+                this.showLoader = true;
+                this.getPreview(this.passData.passProtctedDocUrl);
+            }
         },
         mounted : function() {
         },
