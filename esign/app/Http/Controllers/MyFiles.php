@@ -120,7 +120,10 @@ class MyFiles extends Controller
     public function getUserSignatures(){
         return $this->myFiles->getUserSignatures();
     }
-    public function uploadSignature (Request $request){
+    /*public function uploadSignature (Request $request){
         return $this->myFiles->uploadSignature($request->all());
+    }*/
+    public function getAuthorizationUrl(){
+        return $this->myFiles->getAuthorizationUrl();
     }
 }

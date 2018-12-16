@@ -15,6 +15,9 @@ use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Dropbox\Client;
+use Stevenmaguire\OAuth2\Client\Provider\Dropbox;
+use Illuminate\Support\Facades\Session;
 
 class MyFilesRepository extends Repository
 {
@@ -286,6 +289,7 @@ class MyFilesRepository extends Repository
                 $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
 
                 $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
+                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile.'/'.$fileName),$pathToStoreFile);
 
                 Db::beginTransaction();
 
@@ -480,6 +484,7 @@ class MyFilesRepository extends Repository
                 $pathToStoreFile = $userId . "/signatures/".$fileName;
 
                 Storage::disk('public')->put($pathToStoreFile, $image);
+                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile),$userId . "/signatures/");
            /* }*/
 
             /*if($hasError == false){*/
@@ -536,7 +541,7 @@ class MyFilesRepository extends Repository
 
         return Response::json($response);
     }
-    public function uploadSignature($data){
+    /*public function uploadSignature($data){
 
         $userId = Auth::user()->id;
         $validator = $this->validateFileUpload($data,'pic');
@@ -579,5 +584,72 @@ class MyFilesRepository extends Repository
             }
         }
         return Response::json($response);
+    }*/
+    public function dropboxFileUpload($fileName,$filePath,$pathToStoreFile)
+    {
+        $tokenn = Session::get('dropboxToken');
+        //dd($tokenn);
+        //dd($tokenn);
+        //$Client = new Client(config('filesystems.dropbox.access_token'));
+        $Client = new Client($tokenn);
+        $file = fopen(public_path($filePath), 'rb');
+        $dropboxFileName = $pathToStoreFile.'/'.$fileName;
+        $Client->upload($dropboxFileName,$file, 'add');
     }
+    public function getAuthorizationUrl(){
+        $provider = new Dropbox([
+            'clientId'          => config('filesystems.dropbox.key'),
+            'clientSecret'      => config('filesystems.dropbox.secret'),
+            'redirectUri'       => config('filesystems.dropbox.redirect_url')
+        ]);
+
+        if (!isset($_GET['code'])) {
+
+            // If we don't have an authorization code then get one
+            $authUrl = $provider->getAuthorizationUrl();
+            Session::put('oauth2state', $provider->getState());
+            //return $authUrl;
+            return ['authUrl' => $authUrl,'redirectUrl' => config('filesystems.dropbox.redirect_url')];
+            /*return view('dropbox', ['authUrl' => $authUrl,'redirectUrl' => 'http://localhost:8000/get-auth-url']);*/
+            /*header('Location: '.$authUrl);
+            exit;*/
+
+            // Check given state against previously stored one to mitigate CSRF attack
+        } elseif (empty($_GET['state']) || ($_GET['state'] !== Session::get('oauth2state'))) {
+            //dd($_REQUEST);
+            Session::forget('oauth2state');
+            /*unset($_SESSION['oauth2state']);*/
+            exit('Invalid state');
+
+        } else {
+
+            // Try to get an access token (using the authorization code grant)
+            $token = $provider->getAccessToken('authorization_code', [
+                'code' => $_GET['code']
+            ]);
+
+            // Optional: Now you have a token you can look up a users profile data
+            /*try {
+
+                // We got an access token, let's now get the user's details
+                $user = $provider->getResourceOwner($token);
+
+                // Use these details to create a new profile
+                //printf('Hello %s!', $user->getId());
+
+            } catch (Exception $e) {
+
+                // Failed to get user details
+                exit('Oh dear...');
+            }*/
+            $dt = $token->getToken();
+            //session(['dropboxToken' => $dt]);
+            //dd($token.'</br>'.$dt.'</br>'.session('dropboxToken'));
+            Session::put('dropboxToken', $dt);
+            // Use this to interact with an API on the users behalf
+            //return $token->getToken();
+
+        }
+    }
+
 }

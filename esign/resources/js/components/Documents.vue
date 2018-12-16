@@ -52,7 +52,7 @@
             </div>
             <div class="file-content">
                 <div class="file-container " v-if="!showPreview">
-                    <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions" @vdropzone-success="onComplete" @vdropzone-sending="sendingEvent" @vdropzone-max-files-exceeded="maxFilesExceeded" :useCustomSlot=true>
+                    <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"   @vdropzone-success="onComplete" @vdropzone-sending="sendingEvent" @vdropzone-max-files-exceeded="maxFilesExceeded" :useCustomSlot=true>
                         <div class="dropzone-custom-content1">
                             <div class="text-center drag-drop-box1">
                                 <br/>
@@ -75,7 +75,10 @@
                 </div>
             </div>
             <div class="file-tool">
-                <ul class="file-tool-list">
+                <ul class="file-tool-list" id="file-tool-list">
+                    <li>
+                        <a @click="mounted" class="link-btn" title="Dropbox Authentication"><i class="fa fa-dropbox mr-2" aria-hidden="true"></i>Dropbox Authentication</a>
+                    </li>
                     <!--<li>
                         <a class="link-btn" title="Upload Files"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Upload Documents</a>
                     </li>-->
@@ -154,6 +157,13 @@
                 </div>
             </div>
         </div>
+        <div class="modal" id="modal-dropbox">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                </div>
+            </div>
+        </div>
         <!--MODAl FOR NEW IGNATURE CREATE-->
         <div v-bind:class="getSignatureModalClass()" class="modal1 SignatureModal" id="modal-new-signature">
             <div class="modal-dialog">
@@ -215,7 +225,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-blue form-btn">Save</button>
+                            <button type="submit" class="btn btn-blue form-btn">Open Document</button>
                         </div>
                     </div>
                 </form>
@@ -288,6 +298,7 @@
         created: function () {
             this.showLoader = true;
             this.getFolders();
+
         },
         components: {
             vueDropzone: vue2Dropzone,
@@ -401,7 +412,7 @@
                     this.getSubFolderAndFiles(folderId, false);
                     this.folderNavigationArray.splice(-1);
 
-                    console.log(this.folderNavigationArray);
+                    //console.log(this.folderNavigationArray);
                 }
 
             },
@@ -479,7 +490,23 @@
              * 
              */
             sendingEvent: function(file,xhr,formData){
+                console.log('sendingEvent');
                 formData.append('user_directory_id',this.currentFolder.parentId);
+            },
+            mounted: function(){
+                //console.log('mounted');
+                Axios.get(common.data().serverPath + 'get-auth-url').then((response) => {
+                     //url =  response.data;
+                     //console.log(response.data);
+                    this.openDropboxLogin(response.data.authUrl,response.data.redirectUrl,);
+                    /*$('#modal-dropbox .modal-content').html(response.data)
+                    //$('#modal-dropbox .modal-content').html('<iframe style="border: 0px; " src="' +url + '" width="100%" height="100%"></iframe>')
+                    $('#modal-dropbox').modal('show');*/
+                }).catch((error) => {
+                    //console.log(error);
+                    notify.methods.notifyError('Unable to fetch authentication. Please try again.');
+                })
+
             },
 
             /**
@@ -612,7 +639,7 @@
                         });
                     }
                 }, (reason)=> {
-                    console.log(reason);
+                    //console.log(reason);
                     // PDF loading error
                     var passError = reason.name
                     if(passError=='PasswordException'){
@@ -706,7 +733,7 @@
                 this.showLoader = true;
                 const url = common.data().serverPath + 'get-signatures';
                 Axios.get(url).then((response) => {
-                    console.log(response);
+                    //console.log(response);
                     this.showLoader = false;
                     if (response.data.success) {
                         this.signaures = response.data.signatures;
@@ -933,7 +960,37 @@
             getUserPass: function(){
                 this.showLoader = true;
                 this.getPreview(this.passData.passProtctedDocUrl);
-            }
+            },
+            openDropboxLogin: function (_url,redirectUrl) {
+                var win         =   window.open(_url, "windowname", 'width=800, height=600');
+
+                var pollTimer   =   window.setInterval(() => {
+                    try {
+                        var url =   win.document.URL;
+                        //console.log(url);
+
+                        if (url.indexOf(redirectUrl) != -1) {
+                            window.clearInterval(pollTimer);
+                            win.close();
+                            /*var code =   this.gup(url, 'code','&');
+                            var state =   this.gup(url, 'state','?');*/
+                        }
+                    } catch(e) {
+                    }
+                }, 500);
+
+            },
+            gup: function (url,name,char) {
+                name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+                var regexS = "[\\#"+char+"]"+name+"=([^&#]*)";
+                var regex = new RegExp( regexS );
+                var results = regex.exec( url );
+                if( results == null )
+                    return "";
+                else
+                    return results[1];
+            },
+
         },
         mounted : function() {
         },

@@ -48371,6 +48371,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -48550,7 +48560,7 @@ __webpack_require__(72);
                 this.getSubFolderAndFiles(folderId, false);
                 this.folderNavigationArray.splice(-1);
 
-                console.log(this.folderNavigationArray);
+                //console.log(this.folderNavigationArray);
             }
         },
 
@@ -48627,7 +48637,24 @@ __webpack_require__(72);
          * 
          */
         sendingEvent: function sendingEvent(file, xhr, formData) {
+            console.log('sendingEvent');
             formData.append('user_directory_id', this.currentFolder.parentId);
+        },
+        mounted: function mounted() {
+            var _this6 = this;
+
+            //console.log('mounted');
+            Axios.get(__WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-auth-url').then(function (response) {
+                //url =  response.data;
+                //console.log(response.data);
+                _this6.openDropboxLogin(response.data.authUrl, response.data.redirectUrl);
+                /*$('#modal-dropbox .modal-content').html(response.data)
+                //$('#modal-dropbox .modal-content').html('<iframe style="border: 0px; " src="' +url + '" width="100%" height="100%"></iframe>')
+                $('#modal-dropbox').modal('show');*/
+            }).catch(function (error) {
+                //console.log(error);
+                __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Unable to fetch authentication. Please try again.');
+            });
         },
 
         /**
@@ -48658,7 +48685,7 @@ __webpack_require__(72);
          * Preview the document
          */
         previewDocument: function previewDocument(documentId) {
-            var _this6 = this;
+            var _this7 = this;
 
             this.showLoader = true;
             this.backToDocuments();
@@ -48666,20 +48693,20 @@ __webpack_require__(72);
             Axios.get(url).then(function (response) {
                 if (response.data.success) {
                     if (response.data.data.mimeType != 'application/pdf') {
-                        _this6.pdfFile = false;
+                        _this7.pdfFile = false;
                     } else {
-                        _this6.pdfFile = true;
+                        _this7.pdfFile = true;
                     }
-                    _this6.docPreviewUrl = response.data.data.url;
-                    _this6.getPreview(_this6.docPreviewUrl);
-                    _this6.showLoader = false;
-                    _this6.showPreview = true;
+                    _this7.docPreviewUrl = response.data.data.url;
+                    _this7.getPreview(_this7.docPreviewUrl);
+                    _this7.showLoader = false;
+                    _this7.showPreview = true;
                 } else {
 
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
                 }
             }).catch(function (error) {
-                _this6.showLoader = false;
+                _this7.showLoader = false;
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Unable to fetch the document. Please try again.');
             });
         },
@@ -48701,7 +48728,7 @@ __webpack_require__(72);
          * get document Preview
          */
         getPreview: function getPreview(url) {
-            var _this7 = this;
+            var _this8 = this;
 
             // Loaded via <script> tag, create shortcut to access PDF.js exports.
             var pdfjsLib = window['pdfjs-dist/build/pdf'];
@@ -48726,7 +48753,7 @@ __webpack_require__(72);
                     var cnt = 0;
 
                     pdf.getPage(num).then(function (page) {
-                        _this7.showLoader = false;
+                        _this8.showLoader = false;
                         cnt++;
                         var viewport = page.getViewport(1.2);
                         var canvas = document.createElement('canvas');
@@ -48759,11 +48786,11 @@ __webpack_require__(72);
                         $('#docPage' + cnt).append(canvas);
 
                         page.render(renderContext);
-                        _this7.initCanvas(can, '#docPage' + cnt);
+                        _this8.initCanvas(can, '#docPage' + cnt);
                     });
                 }
             }, function (reason) {
-                console.log(reason);
+                //console.log(reason);
                 // PDF loading error
                 var passError = reason.name;
                 if (passError == 'PasswordException') {
@@ -48771,9 +48798,9 @@ __webpack_require__(72);
                         notify.methods.notifyError('Document is Password protected.'+reason.message);
                     }*/
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(reason.message);
-                    _this7.isDocumentPasswordProtected = true;
-                    _this7.passData.passProtctedDocUrl = url;
-                    _this7.showLoader = false;
+                    _this8.isDocumentPasswordProtected = true;
+                    _this8.passData.passProtctedDocUrl = url;
+                    _this8.showLoader = false;
                 }
             });
         },
@@ -48853,20 +48880,20 @@ __webpack_require__(72);
             this.docTools = true;
         },
         storedSignatures: function storedSignatures() {
-            var _this8 = this;
+            var _this9 = this;
 
             this.showLoader = true;
             var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-signatures';
             Axios.get(url).then(function (response) {
-                console.log(response);
-                _this8.showLoader = false;
+                //console.log(response);
+                _this9.showLoader = false;
                 if (response.data.success) {
-                    _this8.signaures = response.data.signatures;
+                    _this9.signaures = response.data.signatures;
                 } else {
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.message);
                 }
             }).catch(function (error) {
-                _this8.showLoader = false;
+                _this9.showLoader = false;
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please refresh the page.');
             });
         },
@@ -49027,11 +49054,11 @@ __webpack_require__(72);
             this.openNewSignatureModal();
         },
         saveUserSignatures: function saveUserSignatures() {
-            var _this9 = this;
+            var _this10 = this;
 
             this.showLoader = true;
             this.getBase64(this.file).then(function (data) {
-                return _this9.fData.signatureData = data;
+                return _this10.fData.signatureData = data;
             });
 
             this.fData.type = 'upload';
@@ -49050,17 +49077,17 @@ __webpack_require__(72);
          * save signature to database
          */
         saveSignature: function saveSignature() {
-            var _this10 = this;
+            var _this11 = this;
 
             this.showLoader = true;
             var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'create-signature';
 
             Axios.post(url, this.fData).then(function (response) {
-                _this10.storedSignatures();
-                _this10.showLoader = false;
+                _this11.storedSignatures();
+                _this11.showLoader = false;
                 if (response.data.success) {
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess(response.data.message);
-                    _this10.pad = 'closed';
+                    _this11.pad = 'closed';
                 } else {
                     if (response.data.error.statusCode === 103) {
                         __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.data.error.errorDescription);
@@ -49069,7 +49096,7 @@ __webpack_require__(72);
                     }
                 }
             }).catch(function (error) {
-                _this10.showLoader = false;
+                _this11.showLoader = false;
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Something went wrong. Please try again.');
             });
         },
@@ -49079,12 +49106,12 @@ __webpack_require__(72);
             this.saveSignature();
         },
         getBase64: function getBase64(file) {
-            var _this11 = this;
+            var _this12 = this;
 
             return new Promise(function (resolve, reject) {
                 var reader = new FileReader();
                 reader.readAsDataURL(file);
-                _this11.fData.fileext = file.name.split('.').pop().toLowerCase();
+                _this12.fData.fileext = file.name.split('.').pop().toLowerCase();
                 reader.onload = function () {
                     return resolve(reader.result);
                 };
@@ -49101,7 +49128,32 @@ __webpack_require__(72);
         getUserPass: function getUserPass() {
             this.showLoader = true;
             this.getPreview(this.passData.passProtctedDocUrl);
+        },
+        openDropboxLogin: function openDropboxLogin(_url, redirectUrl) {
+            var win = window.open(_url, "windowname", 'width=800, height=600');
+
+            var pollTimer = window.setInterval(function () {
+                try {
+                    var url = win.document.URL;
+                    //console.log(url);
+
+                    if (url.indexOf(redirectUrl) != -1) {
+                        window.clearInterval(pollTimer);
+                        win.close();
+                        /*var code =   this.gup(url, 'code','&');
+                        var state =   this.gup(url, 'state','?');*/
+                    }
+                } catch (e) {}
+            }, 500);
+        },
+        gup: function gup(url, name, char) {
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\#" + char + "]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(url);
+            if (results == null) return "";else return results[1];
         }
+
     },
     mounted: function mounted() {}
 
@@ -56973,143 +57025,165 @@ var render = function() {
         ]),
         _vm._v(" "),
         _c("div", { staticClass: "file-tool" }, [
-          _c("ul", { staticClass: "file-tool-list" }, [
-            _c("li", [
-              _c(
-                "a",
-                {
-                  staticClass: "link-btn",
-                  attrs: { title: "New Folder" },
-                  on: { click: _vm.openCreateFolderModal }
-                },
-                [
-                  _c("i", {
-                    staticClass: "fa fa-folder-o mr-2",
-                    attrs: { "aria-hidden": "true" }
-                  }),
-                  _vm._v("New Folder")
-                ]
-              )
-            ]),
-            _vm._v(" "),
-            _c("li", [
-              _c(
-                "a",
-                {
-                  staticClass: "link-btn",
-                  attrs: { title: "User Signatures" },
-                  on: { click: _vm.showHideUserSignatures }
-                },
-                [
-                  _c("i", {
-                    staticClass: "fa fa-edit mr-2",
-                    attrs: { "aria-hidden": "true" }
-                  }),
-                  _vm._v("User Signatures")
-                ]
-              ),
+          _c(
+            "ul",
+            { staticClass: "file-tool-list", attrs: { id: "file-tool-list" } },
+            [
+              _c("li", [
+                _c(
+                  "a",
+                  {
+                    staticClass: "link-btn",
+                    attrs: { title: "Dropbox Authentication" },
+                    on: { click: _vm.mounted }
+                  },
+                  [
+                    _c("i", {
+                      staticClass: "fa fa-dropbox mr-2",
+                      attrs: { "aria-hidden": "true" }
+                    }),
+                    _vm._v("Dropbox Authentication")
+                  ]
+                )
+              ]),
               _vm._v(" "),
-              _vm.userSignatures
-                ? _c("ul", [
-                    _c("li", [
-                      _c(
-                        "a",
-                        {
-                          staticClass: "link-btn",
-                          attrs: { title: "New Signature" },
-                          on: { click: _vm.createNewSignature }
-                        },
-                        [
-                          _c("i", {
-                            staticClass: "fa fa-edit mr-2",
-                            attrs: { "aria-hidden": "true" }
-                          }),
-                          _vm._v("New Signature")
-                        ]
-                      )
-                    ]),
-                    _vm._v(" "),
-                    _c("li", [
-                      _c(
-                        "a",
-                        {
-                          staticClass: "link-btn",
-                          attrs: { title: "Upload Signature" },
-                          on: { click: _vm.uploadSignature }
-                        },
-                        [
-                          _c("i", {
-                            staticClass: "fa fa-upload mr-2",
-                            attrs: { "aria-hidden": "true" }
-                          }),
-                          _vm._v("Upload Signature.")
-                        ]
-                      )
+              _c("li", [
+                _c(
+                  "a",
+                  {
+                    staticClass: "link-btn",
+                    attrs: { title: "New Folder" },
+                    on: { click: _vm.openCreateFolderModal }
+                  },
+                  [
+                    _c("i", {
+                      staticClass: "fa fa-folder-o mr-2",
+                      attrs: { "aria-hidden": "true" }
+                    }),
+                    _vm._v("New Folder")
+                  ]
+                )
+              ]),
+              _vm._v(" "),
+              _c("li", [
+                _c(
+                  "a",
+                  {
+                    staticClass: "link-btn",
+                    attrs: { title: "User Signatures" },
+                    on: { click: _vm.showHideUserSignatures }
+                  },
+                  [
+                    _c("i", {
+                      staticClass: "fa fa-edit mr-2",
+                      attrs: { "aria-hidden": "true" }
+                    }),
+                    _vm._v("User Signatures")
+                  ]
+                ),
+                _vm._v(" "),
+                _vm.userSignatures
+                  ? _c("ul", [
+                      _c("li", [
+                        _c(
+                          "a",
+                          {
+                            staticClass: "link-btn",
+                            attrs: { title: "New Signature" },
+                            on: { click: _vm.createNewSignature }
+                          },
+                          [
+                            _c("i", {
+                              staticClass: "fa fa-edit mr-2",
+                              attrs: { "aria-hidden": "true" }
+                            }),
+                            _vm._v("New Signature")
+                          ]
+                        )
+                      ]),
+                      _vm._v(" "),
+                      _c("li", [
+                        _c(
+                          "a",
+                          {
+                            staticClass: "link-btn",
+                            attrs: { title: "Upload Signature" },
+                            on: { click: _vm.uploadSignature }
+                          },
+                          [
+                            _c("i", {
+                              staticClass: "fa fa-upload mr-2",
+                              attrs: { "aria-hidden": "true" }
+                            }),
+                            _vm._v("Upload Signature.")
+                          ]
+                        )
+                      ])
                     ])
+                  : _vm._e()
+              ]),
+              _vm._v(" "),
+              !_vm.showDeleteButton && _vm.folders.length
+                ? _c("li", { staticClass: "mt-3" }, [
+                    _c(
+                      "a",
+                      {
+                        staticClass: "link-btn color-red",
+                        attrs: { title: "New Folder" },
+                        on: { click: _vm.showHideDeleteOption }
+                      },
+                      [
+                        _c("i", {
+                          staticClass: "fa fa-trash mr-2",
+                          attrs: { "aria-hidden": "true" }
+                        }),
+                        _vm._v("Remove Folder")
+                      ]
+                    )
+                  ])
+                : _vm._e(),
+              _vm._v(" "),
+              _vm.showDeleteButton && _vm.folders.length
+                ? _c("li", { staticClass: "mt-3" }, [
+                    _c(
+                      "a",
+                      {
+                        staticClass: "link-btn color-red",
+                        attrs: { title: "New Folder" },
+                        on: { click: _vm.showHideDeleteOption }
+                      },
+                      [
+                        _c("i", {
+                          staticClass: "fa fa-times-circle mr-2",
+                          attrs: { "aria-hidden": "true" }
+                        }),
+                        _vm._v("Cancel Remove")
+                      ]
+                    )
+                  ])
+                : _vm._e(),
+              _vm._v(" "),
+              _vm.showPreview
+                ? _c("li", { staticClass: "mt-3" }, [
+                    _c(
+                      "a",
+                      {
+                        staticClass: "link-btn",
+                        attrs: { title: "Tools" },
+                        on: { click: _vm.openTools }
+                      },
+                      [
+                        _c("i", {
+                          staticClass: "fa fa-gear mr-2",
+                          attrs: { "area-hidden": "true" }
+                        }),
+                        _vm._v("Tools")
+                      ]
+                    )
                   ])
                 : _vm._e()
-            ]),
-            _vm._v(" "),
-            !_vm.showDeleteButton && _vm.folders.length
-              ? _c("li", { staticClass: "mt-3" }, [
-                  _c(
-                    "a",
-                    {
-                      staticClass: "link-btn color-red",
-                      attrs: { title: "New Folder" },
-                      on: { click: _vm.showHideDeleteOption }
-                    },
-                    [
-                      _c("i", {
-                        staticClass: "fa fa-trash mr-2",
-                        attrs: { "aria-hidden": "true" }
-                      }),
-                      _vm._v("Remove Folder")
-                    ]
-                  )
-                ])
-              : _vm._e(),
-            _vm._v(" "),
-            _vm.showDeleteButton && _vm.folders.length
-              ? _c("li", { staticClass: "mt-3" }, [
-                  _c(
-                    "a",
-                    {
-                      staticClass: "link-btn color-red",
-                      attrs: { title: "New Folder" },
-                      on: { click: _vm.showHideDeleteOption }
-                    },
-                    [
-                      _c("i", {
-                        staticClass: "fa fa-times-circle mr-2",
-                        attrs: { "aria-hidden": "true" }
-                      }),
-                      _vm._v("Cancel Remove")
-                    ]
-                  )
-                ])
-              : _vm._e(),
-            _vm._v(" "),
-            _vm.showPreview
-              ? _c("li", { staticClass: "mt-3" }, [
-                  _c(
-                    "a",
-                    {
-                      staticClass: "link-btn",
-                      attrs: { title: "Tools" },
-                      on: { click: _vm.openTools }
-                    },
-                    [
-                      _c("i", {
-                        staticClass: "fa fa-gear mr-2",
-                        attrs: { "area-hidden": "true" }
-                      }),
-                      _vm._v("Tools")
-                    ]
-                  )
-                ])
-              : _vm._e()
-          ]),
+            ]
+          ),
           _vm._v(" "),
           _vm.docTools
             ? _c("div", [
@@ -57311,6 +57385,8 @@ var render = function() {
           ])
         ])
       ]),
+      _vm._v(" "),
+      _vm._m(4),
       _vm._v(" "),
       _c(
         "div",
@@ -57533,7 +57609,7 @@ var render = function() {
                       ])
                     ]),
                     _vm._v(" "),
-                    _vm._m(4)
+                    _vm._m(5)
                   ])
                 ]
               )
@@ -57611,11 +57687,21 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "modal", attrs: { id: "modal-dropbox" } }, [
+      _c("div", { staticClass: "modal-dialog" }, [
+        _c("div", { staticClass: "modal-content" })
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
     return _c("div", { staticClass: "modal-footer" }, [
       _c(
         "button",
         { staticClass: "btn btn-blue form-btn", attrs: { type: "submit" } },
-        [_vm._v("Save")]
+        [_vm._v("Open Document")]
       )
     ])
   }
