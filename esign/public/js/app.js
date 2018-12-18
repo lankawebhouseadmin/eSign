@@ -48381,6 +48381,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
 
 
 
@@ -48637,7 +48640,6 @@ __webpack_require__(72);
          * 
          */
         sendingEvent: function sendingEvent(file, xhr, formData) {
-            console.log('sendingEvent');
             formData.append('user_directory_id', this.currentFolder.parentId);
         },
         mounted: function mounted() {
@@ -49153,9 +49155,25 @@ __webpack_require__(72);
             var results = regex.exec(url);
             if (results == null) return "";else return results[1];
         }
+        /*googleLogin: function(){
+            var redirectUrl = 'success=true';
+            var win         =   window.open(common.data().serverPath + 'google-login', "windowname", 'width=800, height=600');
+             var pollTimer   =   window.setInterval(() => {
+                try {
+                    var url =   win.document.URL;
+                    //console.log(url);
+                     if (url.indexOf(redirectUrl) != -1) {
+                        window.clearInterval(pollTimer);
+                        win.close();
+                        /!*var code =   this.gup(url, 'code','&');
+                        var state =   this.gup(url, 'state','?');*!/
+                    }
+                } catch(e) {
+                }
+            }, 500);
+         },*/
 
-    },
-    mounted: function mounted() {}
+    }
 
 });
 
@@ -57047,6 +57065,8 @@ var render = function() {
                 )
               ]),
               _vm._v(" "),
+              _vm._m(1),
+              _vm._v(" "),
               _c("li", [
                 _c(
                   "a",
@@ -57189,7 +57209,7 @@ var render = function() {
             ? _c("div", [
                 _c("ul", [
                   _c("li", { staticClass: "mt-3" }, [
-                    _vm._m(1),
+                    _vm._m(2),
                     _vm._v(" "),
                     _c("ul", [
                       _c("li", [
@@ -57341,7 +57361,7 @@ var render = function() {
                 }
               },
               [
-                _vm._m(2),
+                _vm._m(3),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-body" }, [
                   _c("div", { staticClass: "box-body" }, [
@@ -57379,14 +57399,12 @@ var render = function() {
                   ])
                 ]),
                 _vm._v(" "),
-                _vm._m(3)
+                _vm._m(4)
               ]
             )
           ])
         ])
       ]),
-      _vm._v(" "),
-      _vm._m(4),
       _vm._v(" "),
       _c(
         "div",
@@ -57649,6 +57667,20 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
+    return _c("li", [
+      _c("a", { attrs: { href: "/google-login" } }, [
+        _c("i", {
+          staticClass: "fa fa-drive mr-2",
+          attrs: { "aria-hidden": "true" }
+        }),
+        _vm._v("Google Drive Authentication")
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
     return _c("a", { staticClass: "link-btn" }, [
       _c("i", { staticClass: "fa fa-pencil" }),
       _vm._v("Sign")
@@ -57681,16 +57713,6 @@ var staticRenderFns = [
         { staticClass: "btn btn-blue form-btn", attrs: { type: "submit" } },
         [_vm._v("Create Folder")]
       )
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "modal", attrs: { id: "modal-dropbox" } }, [
-      _c("div", { staticClass: "modal-dialog" }, [
-        _c("div", { staticClass: "modal-content" })
-      ])
     ])
   },
   function() {

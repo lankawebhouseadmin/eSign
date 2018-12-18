@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Session;
 class MyFilesRepository extends Repository
 {
     private $common;
+    public $gClient;
 
     /**
      * CONSTRUCTOR
@@ -29,8 +30,25 @@ class MyFilesRepository extends Repository
      */
     public function __construct(App $app)
     {
+
         parent::__construct($app);
         $this->common = new common();
+
+        /*define the authorized Google client object.*/
+        $google_redirect_url = route('google-login');
+        //$google_redirect_url = '/google-login';
+        $this->gClient = new \Google_Client();
+        $this->gClient->setApplicationName(config('filesystems.google.app_name'));
+        $this->gClient->setClientId(config('filesystems.google.client_id'));
+        $this->gClient->setClientSecret(config('filesystems.google.client_secret'));
+        $this->gClient->setRedirectUri($google_redirect_url);
+        $this->gClient->setDeveloperKey(config('filesystems.google.api_key'));
+        $this->gClient->setScopes(array(
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/drive'
+        ));
+        $this->gClient->setAccessType("offline");
+        $this->gClient->setApprovalPrompt("force");
     }
 
     /**
@@ -290,6 +308,7 @@ class MyFilesRepository extends Repository
 
                 $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
                 $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile.'/'.$fileName),$pathToStoreFile);
+                $this->uploadFileUsingAccessToken($userDirectoryId,$fileName,Storage::url($pathToStoreFile.'/'.$fileName),$data['file']->getMimeType());
 
                 Db::beginTransaction();
 
@@ -588,19 +607,17 @@ class MyFilesRepository extends Repository
     public function dropboxFileUpload($fileName,$filePath,$pathToStoreFile)
     {
         $tokenn = Session::get('dropboxToken');
-        //dd($tokenn);
-        //dd($tokenn);
-        //$Client = new Client(config('filesystems.dropbox.access_token'));
         $Client = new Client($tokenn);
         $file = fopen(public_path($filePath), 'rb');
         $dropboxFileName = $pathToStoreFile.'/'.$fileName;
         $Client->upload($dropboxFileName,$file, 'add');
     }
-    public function getAuthorizationUrl(){
+    public function getAuthorizationUrl()
+    {
         $provider = new Dropbox([
-            'clientId'          => config('filesystems.dropbox.key'),
-            'clientSecret'      => config('filesystems.dropbox.secret'),
-            'redirectUri'       => config('filesystems.dropbox.redirect_url')
+            'clientId' => config('filesystems.dropbox.key'),
+            'clientSecret' => config('filesystems.dropbox.secret'),
+            'redirectUri' => config('filesystems.dropbox.redirect_url')
         ]);
 
         if (!isset($_GET['code'])) {
@@ -609,7 +626,7 @@ class MyFilesRepository extends Repository
             $authUrl = $provider->getAuthorizationUrl();
             Session::put('oauth2state', $provider->getState());
             //return $authUrl;
-            return ['authUrl' => $authUrl,'redirectUrl' => config('filesystems.dropbox.redirect_url')];
+            return ['authUrl' => $authUrl, 'redirectUrl' => config('filesystems.dropbox.redirect_url')];
             /*return view('dropbox', ['authUrl' => $authUrl,'redirectUrl' => 'http://localhost:8000/get-auth-url']);*/
             /*header('Location: '.$authUrl);
             exit;*/
@@ -650,6 +667,97 @@ class MyFilesRepository extends Repository
             //return $token->getToken();
 
         }
+    }
+    public function googleLogin($request)  {
+
+        $google_oauthV2 = new \Google_Service_Oauth2($this->gClient);
+        if ($request->get('code')){
+            $this->gClient->authenticate($request->get('code'));
+            $request->session()->put('token', $this->gClient->getAccessToken());
+
+        }
+        if ($request->session()->get('token'))
+        {
+            $this->gClient->setAccessToken($request->session()->get('token'));
+        }
+        if ($this->gClient->getAccessToken())
+        {
+            $userId = Auth::user()->id;
+            //For logged in user, get details from google using acces
+            $user=User::find($userId);
+            //dd($user);
+            $user->access_token=json_encode($request->session()->get('token'));
+            $user->save();
+            //dd("Successfully authenticated");
+            return redirect()->to(route('myfiles'));
+        } else
+        {
+            //For Guest user, get google login url
+            $authUrl = $this->gClient->createAuthUrl();
+            return redirect()->to($authUrl);
+        }
+    }
+    public function uploadFileUsingAccessToken($folderName,$fileName,$filePath,$mimeType){
+        $service = new \Google_Service_Drive($this->gClient);
+        $userId = Auth::user()->id;
+        $user=User::find($userId);
+        $this->gClient->setAccessToken(json_decode($user->access_token,true));
+        if ($this->gClient->isAccessTokenExpired()) {
+
+            // save refresh token to some variable
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+            // update access token
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+            // // pass access token to some variable
+            $updatedAccessToken = $this->gClient->getAccessToken();
+            // // append refresh token
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+            //Set the new acces token
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token=json_encode($updatedAccessToken);
+            $user->save();
+        }
+
+        $getFolderListData = new \Google_Service_Drive_DriveFile(array(
+            'parents' => array('root'),
+            'mimeType' => 'application/vnd.google-apps.folder'
+        ));
+        $folderList =  $service->files->listFiles($getFolderListData);
+        dd($folderList);
+
+        $fileMetadataDoc = new \Google_Service_Drive_DriveFile(array(
+            'name' => 'Documents',
+            'mimeType' => 'application/vnd.google-apps.folder'));
+        $docFolder = $service->files->create($fileMetadataDoc, array(
+            'fields' => 'id'));
+
+        $fileMetadata = new \Google_Service_Drive_DriveFile(array(
+            'name' => $folderName,
+            'mimeType' => 'application/vnd.google-apps.folder',
+            'parents' => array($docFolder->id)
+            ));
+        $folder = $service->files->create($fileMetadata, array(
+            'fields' => 'id'));
+        //printf("Folder ID: %s\n", $folder->id);
+
+
+        $file = new \Google_Service_Drive_DriveFile(array(
+            'name' => $fileName,
+            'parents' => array($folder->id)
+        ));
+        //$file = fopen(public_path($filePath), 'rb');
+        $result = $service->files->create($file, array(
+            'data' => file_get_contents(public_path($filePath)),
+            /*'data' => $file,*/
+            /*'mimeType' => 'application/octet-stream',*/
+            'mimeType' => $mimeType,
+            'uploadType' => 'media'
+        ));
+        // get url of uploaded file
+        $url='https://drive.google.com/open?id='.$result->id;
+        //dd($result);
+
     }
 
 }

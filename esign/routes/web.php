@@ -34,6 +34,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('get-signatures', 'MyFiles@getUserSignatures');
     Route::get('get-auth-url', 'MyFiles@getAuthorizationUrl');
     /*Route::post('upload-signature','MyFiles@uploadSignature');*/
+    Route::get('google-login',array('as'=>'google-login','uses'=>'MyFiles@googleLogin')) ;
 });
 
 //Route::group(['prefix' => 'admin',  'middleware' => 'auth:admin'], function() {

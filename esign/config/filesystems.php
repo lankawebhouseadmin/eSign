@@ -72,5 +72,10 @@ return [
         'access_token' => env('DROPBOX_TOKEN'),
         'redirect_url' => env('DROPBOX_REDIRECT_URL')
     ],
-
+    'google' => [
+        'app_name' => env('GOOGLE_APP_NAME'),
+        'api_key' => env('GOOGLE_API_KEY'),
+        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+    ]
 ];

@@ -79,6 +79,9 @@
                     <li>
                         <a @click="mounted" class="link-btn" title="Dropbox Authentication"><i class="fa fa-dropbox mr-2" aria-hidden="true"></i>Dropbox Authentication</a>
                     </li>
+                    <li>
+                        <a href="/google-login"><i class="fa fa-drive mr-2" aria-hidden="true"></i>Google Drive Authentication</a>
+                    </li>
                     <!--<li>
                         <a class="link-btn" title="Upload Files"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Upload Documents</a>
                     </li>-->
@@ -157,13 +160,13 @@
                 </div>
             </div>
         </div>
-        <div class="modal" id="modal-dropbox">
+        <!--<div class="modal" id="modal-dropbox">
             <div class="modal-dialog">
                 <div class="modal-content">
 
                 </div>
             </div>
-        </div>
+        </div>-->
         <!--MODAl FOR NEW IGNATURE CREATE-->
         <div v-bind:class="getSignatureModalClass()" class="modal1 SignatureModal" id="modal-new-signature">
             <div class="modal-dialog">
@@ -292,13 +295,12 @@
                 passData:{
                     password:'',
                     passProtctedDocUrl:''
-                }
+                },
             }
         },
         created: function () {
             this.showLoader = true;
             this.getFolders();
-
         },
         components: {
             vueDropzone: vue2Dropzone,
@@ -490,7 +492,6 @@
              * 
              */
             sendingEvent: function(file,xhr,formData){
-                console.log('sendingEvent');
                 formData.append('user_directory_id',this.currentFolder.parentId);
             },
             mounted: function(){
@@ -990,10 +991,29 @@
                 else
                     return results[1];
             },
+            /*googleLogin: function(){
+                var redirectUrl = 'success=true';
+                var win         =   window.open(common.data().serverPath + 'google-login', "windowname", 'width=800, height=600');
+
+                var pollTimer   =   window.setInterval(() => {
+                    try {
+                        var url =   win.document.URL;
+                        //console.log(url);
+
+                        if (url.indexOf(redirectUrl) != -1) {
+                            window.clearInterval(pollTimer);
+                            win.close();
+                            /!*var code =   this.gup(url, 'code','&');
+                            var state =   this.gup(url, 'state','?');*!/
+                        }
+                    } catch(e) {
+                    }
+                }, 500);
+
+            },*/
 
         },
-        mounted : function() {
-        },
+
 
     }
 
