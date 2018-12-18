@@ -484,7 +484,7 @@ class MyFilesRepository extends Repository
                 $pathToStoreFile = $userId . "/signatures/".$fileName;
 
                 Storage::disk('public')->put($pathToStoreFile, $image);
-                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile),$userId . "/signatures/");
+                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile),$userId . "/signatures");
            /* }*/
 
             /*if($hasError == false){*/
