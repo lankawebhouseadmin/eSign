@@ -23,6 +23,7 @@ class MyFilesRepository extends Repository
 {
     private $common;
     public $gClient;
+    public $gService;
 
     /**
      * CONSTRUCTOR
@@ -38,11 +39,11 @@ class MyFilesRepository extends Repository
         $google_redirect_url = route('google-login');
         //$google_redirect_url = '/google-login';
         $this->gClient = new \Google_Client();
-        $this->gClient->setApplicationName(config('filesystems.google.app_name'));
-        $this->gClient->setClientId(config('filesystems.google.client_id'));
-        $this->gClient->setClientSecret(config('filesystems.google.client_secret'));
+        $this->gClient->setApplicationName(config('filesystems.disks.google.appName'));
+        $this->gClient->setClientId(config('filesystems.disks.google.clientId'));
+        $this->gClient->setClientSecret(config('filesystems.disks.google.clientSecret'));
         $this->gClient->setRedirectUri($google_redirect_url);
-        $this->gClient->setDeveloperKey(config('filesystems.google.api_key'));
+        $this->gClient->setDeveloperKey(config('filesystems.disks.google.apiKey'));
         $this->gClient->setScopes(array(
             'https://www.googleapis.com/auth/drive.file',
             'https://www.googleapis.com/auth/drive'
@@ -285,14 +286,11 @@ class MyFilesRepository extends Repository
             try {
 
                 $userDirectoryId = $data['user_directory_id'];
-                $isConfirmByUser = true;
-                //$fileName = time() . '.' . $data['file']->getClientOriginalExtension();
                 $originalName = $data['file']->getClientOriginalName();
                 $fileName = $originalName;
 
                 /* check Whether file with same name exists */
                 $isDocumentExist = $this->isDocumentExists($userId,$userDirectoryId,$originalName);
-                //dd($isDocumentExist);
                 if($isDocumentExist){
                     $copyName = ' - copy';
                     if($isDocumentExist > 1){
@@ -302,13 +300,14 @@ class MyFilesRepository extends Repository
                     //user confirmation call
                     //$response = array($this->common->success => false, 'message' => 'File Already Exist.','exist'=>true);
                 }
-                //dd($fileName);
+
 
                 $pathToStoreFile = $userId . "/documents/" . $userDirectoryId;
 
                 $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
-                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile.'/'.$fileName),$pathToStoreFile);
-                $this->uploadFileUsingAccessToken($userDirectoryId,$fileName,Storage::url($pathToStoreFile.'/'.$fileName),$data['file']->getMimeType());
+                //$this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile.'/'.$fileName),$pathToStoreFile);
+                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile.'/'.$fileName),'eSign/Documents/'.$userDirectoryId);
+                $url = $this->uploadFileUsingAccessToken($fileName,Storage::url($pathToStoreFile.'/'.$fileName),$data['file']->getMimeType(),$userDirectoryId);
 
                 Db::beginTransaction();
 
@@ -460,8 +459,6 @@ class MyFilesRepository extends Repository
         return $count;
     }
     public function createSignature($data){
-        //dd($data);
-        /*$hasError = false;*/
         try {
             $userId = Auth::user()->id;
             if($data['replaceSignId']){
@@ -471,56 +468,37 @@ class MyFilesRepository extends Repository
                 UserSignatures::find($data['replaceSignId'])->delete();
                 Db::commit();
             }
-            /*if($data['type']=='upload'){
-                $validator = $this->validateFileUpload($data,'pic');
+            //get the base-64 from data
+            $base64_str = substr($data['signatureData'], strpos($data['signatureData'], ",")+1);
+            //decode base64 string
+            $image = base64_decode($base64_str);
+            $f = finfo_open();
+            $mimeType = finfo_buffer($f, $image, FILEINFO_MIME_TYPE);
+            $ext = 'png';
+            if($data['fileext']){
+                $ext = $data['fileext'];
+            }
+            $fileName = time().'.'.$ext;
+            $pathToStoreFile = $userId . "/signatures/".$fileName;
 
-                //VALIDATION FUNCTION
-                if ($validator->fails()) {
-                    $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => $validator->errors()]);
-                    $hasError = true;
-                } else {
-                    $fileExt = $data['file']->getClientOriginalExtension();
-                    $fileName = time().'.'.$fileExt;
-                    $pathToStoreFile = $userId . "/signatures/";
+            Storage::disk('public')->put($pathToStoreFile, $image);
+            //$this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile),$userId . "/signatures");
+            $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile), "eSign/Signatures");
+            $url = $this->uploadFileUsingAccessToken($fileName,Storage::url($pathToStoreFile),$mimeType,'');
 
-                    $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
-                    $pathToStoreFile = $pathToStoreFile.$fileName;
-                }
-            }else{*/
-                //get the base-64 from data
-                $base64_str = substr($data['signatureData'], strpos($data['signatureData'], ",")+1);
-                //decode base64 string
-                $image = base64_decode($base64_str);
-                //dd($image);
-                $ext = 'png';
-                if($data['fileext']){
-                    $ext = $data['fileext'];
-                }
-                /*$f = finfo_open();
-                $ext = finfo_buffer($f, $image, FILEINFO_MIME_TYPE);
-                $ext = substr($ext,strpos($ext,'/')+1);*/
-                $fileName = time().'.'.$ext;
-                $pathToStoreFile = $userId . "/signatures/".$fileName;
+            Db::beginTransaction();
 
-                Storage::disk('public')->put($pathToStoreFile, $image);
-                $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile),$userId . "/signatures/");
-           /* }*/
+            // create user signature model object to store the data
+            $userSignature = new UserSignatures();
+            $userSignature->user_id = $userId;
+            $userSignature->file_path = $pathToStoreFile;
+            $userSignature->file_name = $fileName;
 
-            /*if($hasError == false){*/
-                Db::beginTransaction();
+            $userSignature->save();
 
-                // create user signature model object to store the data
-                $userSignature = new UserSignatures();
-                $userSignature->user_id = $userId;
-                $userSignature->file_path = $pathToStoreFile;
-                $userSignature->file_name = $fileName;
-
-                $userSignature->save();
-
-                DB::commit();
-                $message = 'Signature saved successfully.';
-                $response = array($this->common->success => true, 'message' => $message);
-            /*}*/
+            DB::commit();
+            $message = 'Signature saved successfully.';
+            $response = array($this->common->success => true, 'message' => $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -560,57 +538,16 @@ class MyFilesRepository extends Repository
 
         return Response::json($response);
     }
-    /*public function uploadSignature($data){
 
-        $userId = Auth::user()->id;
-        $validator = $this->validateFileUpload($data,'pic');
-
-        //VALIDATION FUNCTION
-        if ($validator->fails()) {
-            $response = array($this->common->success => false, 'error' => ['statusCode' => 103, 'message' => 'Validation errors in your request.', 'errorDescription' => $validator->errors()]);
-        } else {
-            try {
-                $originalName = $data['file']->getClientOriginalName();
-                $fileExt = $data['file']->getClientOriginalExtension();
-                $fileName = time().'.'.$fileExt;
-                $pathToStoreFile = $userId . "/signatures/";
-
-                $path = Storage::disk('public')->putFileAs($pathToStoreFile, $data['file'], $fileName);
-
-                Db::beginTransaction();
-
-                // create user signature model object to store the data
-                $userSignature = new UserSignatures();
-                $userSignature->user_id = $userId;
-                $userSignature->file_path = $pathToStoreFile.$fileName;
-                $userSignature->file_name = $fileName;
-
-                $userSignature->save();
-
-                DB::commit();
-                $message = 'Signature saved successfully.';
-                $response = array($this->common->success => true, 'message' => $message);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $response = array(
-                    $this->common->success => false,
-                    'error' => [
-                        'code' => $e->getCode(),
-                        'message' => $e->getMessage()
-                    ]
-                );
-            }
-        }
-        return Response::json($response);
-    }*/
     public function dropboxFileUpload($fileName,$filePath,$pathToStoreFile)
     {
         $tokenn = Session::get('dropboxToken');
-        $Client = new Client($tokenn);
-        $file = fopen(public_path($filePath), 'rb');
-        $dropboxFileName = $pathToStoreFile.'/'.$fileName;
-        $Client->upload($dropboxFileName,$file, 'add');
+        if($tokenn){
+            $Client = new Client($tokenn);
+            $file = fopen(public_path($filePath), 'rb');
+            $dropboxFileName = $pathToStoreFile.'/'.$fileName;
+            $Client->upload($dropboxFileName,$file, 'add');
+        }
     }
     public function getAuthorizationUrl()
     {
@@ -625,17 +562,11 @@ class MyFilesRepository extends Repository
             // If we don't have an authorization code then get one
             $authUrl = $provider->getAuthorizationUrl();
             Session::put('oauth2state', $provider->getState());
-            //return $authUrl;
             return ['authUrl' => $authUrl, 'redirectUrl' => config('filesystems.dropbox.redirect_url')];
-            /*return view('dropbox', ['authUrl' => $authUrl,'redirectUrl' => 'http://localhost:8000/get-auth-url']);*/
-            /*header('Location: '.$authUrl);
-            exit;*/
 
             // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($_GET['state']) || ($_GET['state'] !== Session::get('oauth2state'))) {
-            //dd($_REQUEST);
             Session::forget('oauth2state');
-            /*unset($_SESSION['oauth2state']);*/
             exit('Invalid state');
 
         } else {
@@ -645,23 +576,7 @@ class MyFilesRepository extends Repository
                 'code' => $_GET['code']
             ]);
 
-            // Optional: Now you have a token you can look up a users profile data
-            /*try {
-
-                // We got an access token, let's now get the user's details
-                $user = $provider->getResourceOwner($token);
-
-                // Use these details to create a new profile
-                //printf('Hello %s!', $user->getId());
-
-            } catch (Exception $e) {
-
-                // Failed to get user details
-                exit('Oh dear...');
-            }*/
             $dt = $token->getToken();
-            //session(['dropboxToken' => $dt]);
-            //dd($token.'</br>'.$dt.'</br>'.session('dropboxToken'));
             Session::put('dropboxToken', $dt);
             // Use this to interact with an API on the users behalf
             //return $token->getToken();
@@ -697,8 +612,8 @@ class MyFilesRepository extends Repository
             return redirect()->to($authUrl);
         }
     }
-    public function uploadFileUsingAccessToken($folderName,$fileName,$filePath,$mimeType){
-        $service = new \Google_Service_Drive($this->gClient);
+    public function uploadFileUsingAccessToken($fileName,$filePath,$mimeType,$folderName){
+
         $userId = Auth::user()->id;
         $user=User::find($userId);
         $this->gClient->setAccessToken(json_decode($user->access_token,true));
@@ -718,46 +633,68 @@ class MyFilesRepository extends Repository
             $user->access_token=json_encode($updatedAccessToken);
             $user->save();
         }
+        \Storage::extend('google', function() {
 
-        $getFolderListData = new \Google_Service_Drive_DriveFile(array(
-            'parents' => array('root'),
-            'mimeType' => 'application/vnd.google-apps.folder'
-        ));
-        $folderList =  $service->files->listFiles($getFolderListData);
-        dd($folderList);
+            $this->gService = new \Google_Service_Drive($this->gClient);
+            $options = [];
+            if(config('filesystems.disks.google.teamDriveId')) {
+                $options['teamDriveId'] = config('filesystems.disks.google.teamDriveId');
+            }
 
-        $fileMetadataDoc = new \Google_Service_Drive_DriveFile(array(
-            'name' => 'Documents',
-            'mimeType' => 'application/vnd.google-apps.folder'));
-        $docFolder = $service->files->create($fileMetadataDoc, array(
-            'fields' => 'id'));
+            $adapter = new \Hypweb\Flysystem\GoogleDrive\GoogleDriveAdapter($this->gService, config('filesystems.disks.google.folderId'), $options);
 
-        $fileMetadata = new \Google_Service_Drive_DriveFile(array(
-            'name' => $folderName,
-            'mimeType' => 'application/vnd.google-apps.folder',
-            'parents' => array($docFolder->id)
-            ));
-        $folder = $service->files->create($fileMetadata, array(
-            'fields' => 'id'));
-        //printf("Folder ID: %s\n", $folder->id);
+            return new \League\Flysystem\Filesystem($adapter);
+        });
+
+
+        $rteSign = $this->createFolderIfNotExist('eSign','');
+        if($folderName){
+            $documentsId = $this->createFolderIfNotExist('Documents',$rteSign);
+            $folderId = $this->createFolderIfNotExist($folderName,$documentsId);
+        }else{
+            $folderId = $this->createFolderIfNotExist('Signatures',$rteSign);
+        }
 
 
         $file = new \Google_Service_Drive_DriveFile(array(
             'name' => $fileName,
-            'parents' => array($folder->id)
+            'parents' => array($folderId)
         ));
-        //$file = fopen(public_path($filePath), 'rb');
-        $result = $service->files->create($file, array(
+        $result = $this->gService->files->create($file, array(
             'data' => file_get_contents(public_path($filePath)),
-            /*'data' => $file,*/
-            /*'mimeType' => 'application/octet-stream',*/
             'mimeType' => $mimeType,
             'uploadType' => 'media'
         ));
         // get url of uploaded file
         $url='https://drive.google.com/open?id='.$result->id;
-        //dd($result);
+        return $url;
 
+    }
+    public function createFolderIfNotExist($folderName,$parentId=''){
+        $rootId = ($parentId)?$parentId:'/';
+        // Get root directory contents...
+        $contents = collect(Storage::disk('google')->listContents($rootId, false));
+        // Find the folder you are looking for...
+        $dir = $contents->where('type', '=', 'dir')
+            ->where('filename', '=', $folderName)
+            ->first(); // There could be duplicate directory names!
+
+        if ( ! $dir) {
+            //echo 'No such folder!';
+            $options = array(
+                'name' => $folderName,
+                'mimeType' => 'application/vnd.google-apps.folder');
+            if($parentId){
+                $options['parents'] = array($parentId);
+            }
+            $fileMetadataDoc = new \Google_Service_Drive_DriveFile($options);
+            $docFolder = $this->gService->files->create($fileMetadataDoc, array(
+                'fields' => 'id'));
+            return $docFolder->id;
+        }else{
+            /*return $dir['path'];*/
+            return $dir['basename'];
+        }
     }
 
 }

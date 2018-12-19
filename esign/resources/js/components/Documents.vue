@@ -492,19 +492,13 @@
              * 
              */
             sendingEvent: function(file,xhr,formData){
+                this.showLoader = true;
                 formData.append('user_directory_id',this.currentFolder.parentId);
             },
             mounted: function(){
-                //console.log('mounted');
                 Axios.get(common.data().serverPath + 'get-auth-url').then((response) => {
-                     //url =  response.data;
-                     //console.log(response.data);
                     this.openDropboxLogin(response.data.authUrl,response.data.redirectUrl,);
-                    /*$('#modal-dropbox .modal-content').html(response.data)
-                    //$('#modal-dropbox .modal-content').html('<iframe style="border: 0px; " src="' +url + '" width="100%" height="100%"></iframe>')
-                    $('#modal-dropbox').modal('show');*/
                 }).catch((error) => {
-                    //console.log(error);
                     notify.methods.notifyError('Unable to fetch authentication. Please try again.');
                 })
 
@@ -514,8 +508,9 @@
              * After successful upload reload files and folders.
              */
             onComplete : function(file, response){
+                this.showLoader = false;
                 if(response.success){
-                    this.$refs.myVueDropzone.removeAllFiles();
+                    //this.$refs.myVueDropzone.removeAllFiles();
                     notify.methods.notifySuccess(response.message);
                     if (this.currentFolder.parentId > 0) {
                         this.getSubFolderAndFiles(this.currentFolder.parentId, false);
@@ -529,9 +524,10 @@
                         notify.methods.notifyError(response.error.message);
                     }
                 }
-                
+                this.$refs.myVueDropzone.removeAllFiles();
             },
             maxFilesExceeded : function (file){
+                this.showLoader = false;
                 notify.methods.notifyError('You have reached max file upload limit. '+file.name+' has not been uploaded.');
             },
 
@@ -991,26 +987,7 @@
                 else
                     return results[1];
             },
-            /*googleLogin: function(){
-                var redirectUrl = 'success=true';
-                var win         =   window.open(common.data().serverPath + 'google-login', "windowname", 'width=800, height=600');
 
-                var pollTimer   =   window.setInterval(() => {
-                    try {
-                        var url =   win.document.URL;
-                        //console.log(url);
-
-                        if (url.indexOf(redirectUrl) != -1) {
-                            window.clearInterval(pollTimer);
-                            win.close();
-                            /!*var code =   this.gup(url, 'code','&');
-                            var state =   this.gup(url, 'state','?');*!/
-                        }
-                    } catch(e) {
-                    }
-                }, 500);
-
-            },*/
 
         },
 

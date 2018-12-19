@@ -63,6 +63,16 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
         ],
+        'google' => [
+            'driver' => 'google',
+            'clientId' => env('GOOGLE_DRIVE_CLIENT_ID'),
+            'clientSecret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+            /*'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),*/
+            'folderId' => env('GOOGLE_DRIVE_FOLDER_ID'),
+            'appName' => env('GOOGLE_APP_NAME'),
+            'apiKey' => env('GOOGLE_API_KEY'),
+            // 'teamDriveId' => env('GOOGLE_DRIVE_TEAM_DRIVE_ID'),
+        ],
 
     ],
     'dropbox' => [
@@ -72,10 +82,5 @@ return [
         'access_token' => env('DROPBOX_TOKEN'),
         'redirect_url' => env('DROPBOX_REDIRECT_URL')
     ],
-    'google' => [
-        'app_name' => env('GOOGLE_APP_NAME'),
-        'api_key' => env('GOOGLE_API_KEY'),
-        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
-    ]
+
 ];
