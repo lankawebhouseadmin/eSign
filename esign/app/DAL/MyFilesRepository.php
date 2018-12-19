@@ -649,7 +649,7 @@ class MyFilesRepository extends Repository
 
 
         $rteSign = $this->createFolderIfNotExist('eSign','');
-        if($folderName){
+        if($folderName || ($folderName == 0 && $folderName != '')){
             $documentsId = $this->createFolderIfNotExist('Documents',$rteSign);
             $folderId = $this->createFolderIfNotExist($folderName,$documentsId);
         }else{
