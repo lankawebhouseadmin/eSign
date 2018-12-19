@@ -481,6 +481,7 @@ class MyFilesRepository extends Repository
             $fileName = time().'.'.$ext;
             $pathToStoreFile = $userId . "/signatures/".$fileName;
 
+
             Storage::disk('public')->put($pathToStoreFile, $image);
             //$this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile),$userId . "/signatures");
             $this->dropboxFileUpload($fileName,Storage::url($pathToStoreFile), "eSign/Signatures");
