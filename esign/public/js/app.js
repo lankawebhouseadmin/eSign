@@ -48884,7 +48884,6 @@ __webpack_require__(72);
             this.showLoader = true;
             var url = __WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-signatures';
             Axios.get(url).then(function (response) {
-                //console.log(response);
                 _this9.showLoader = false;
                 if (response.data.success) {
                     _this9.signaures = response.data.signatures;
@@ -49057,17 +49056,16 @@ __webpack_require__(72);
 
             this.showLoader = true;
             this.getBase64(this.file).then(function (data) {
-                return _this10.fData.signatureData = data;
+                _this10.fData.signatureData = data;
+                _this10.fData.type = 'upload';
+                if (_this10.signaures.length >= 6) {
+                    _this10.fData.replaceSignId = '';
+                    _this10.overwriteSign = true;
+                    _this10.showLoader = false;
+                } else {
+                    _this10.saveSignature();
+                }
             });
-
-            this.fData.type = 'upload';
-            if (this.signaures.length >= 6) {
-                this.fData.replaceSignId = '';
-                this.overwriteSign = true;
-                this.showLoader = false;
-            } else {
-                this.saveSignature();
-            }
         },
         handleFileUpload: function handleFileUpload() {
             this.file = this.$refs.file.files[0];

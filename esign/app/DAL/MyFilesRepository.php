@@ -517,7 +517,7 @@ class MyFilesRepository extends Repository
         $signatures = [];
         try {
             $userId = Auth::user()->id;
-            $signatures = User::where('id', $userId)->find(1)->userSignatures()->get();
+            $signatures = User::find($userId)->userSignatures()->get();
             foreach ($signatures as $key => $signature){
                 $signatures[$key]->file_path = url('/').Storage::url($signature->file_path);
                 /*dd($signature->file_path);

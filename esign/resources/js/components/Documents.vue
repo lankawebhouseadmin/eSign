@@ -730,7 +730,6 @@
                 this.showLoader = true;
                 const url = common.data().serverPath + 'get-signatures';
                 Axios.get(url).then((response) => {
-                    //console.log(response);
                     this.showLoader = false;
                     if (response.data.success) {
                         this.signaures = response.data.signatures;
@@ -894,17 +893,21 @@
             saveUserSignatures: function () {
                 this.showLoader = true;
                 this.getBase64(this.file).then(
-                    data => this.fData.signatureData = data
+                    data => {
+                        this.fData.signatureData = data;
+                        this.fData.type = 'upload';
+                        if(this.signaures.length >= 6){
+                            this.fData.replaceSignId='';
+                            this.overwriteSign = true;
+                            this.showLoader = false;
+                        }else{
+                            this.saveSignature();
+                        }
+                    }
+
                 );
 
-                this.fData.type = 'upload';
-                if(this.signaures.length >= 6){
-                    this.fData.replaceSignId='';
-                    this.overwriteSign = true;
-                    this.showLoader = false;
-                }else{
-                    this.saveSignature();
-                }
+
             },
             handleFileUpload: function(){
                 this.file = this.$refs.file.files[0];
