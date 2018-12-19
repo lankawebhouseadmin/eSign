@@ -48381,6 +48381,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
 
 
 
@@ -48637,22 +48640,15 @@ __webpack_require__(72);
          * 
          */
         sendingEvent: function sendingEvent(file, xhr, formData) {
-            console.log('sendingEvent');
+            this.showLoader = true;
             formData.append('user_directory_id', this.currentFolder.parentId);
         },
         mounted: function mounted() {
             var _this6 = this;
 
-            //console.log('mounted');
             Axios.get(__WEBPACK_IMPORTED_MODULE_1__shared_Common___default.a.data().serverPath + 'get-auth-url').then(function (response) {
-                //url =  response.data;
-                //console.log(response.data);
                 _this6.openDropboxLogin(response.data.authUrl, response.data.redirectUrl);
-                /*$('#modal-dropbox .modal-content').html(response.data)
-                //$('#modal-dropbox .modal-content').html('<iframe style="border: 0px; " src="' +url + '" width="100%" height="100%"></iframe>')
-                $('#modal-dropbox').modal('show');*/
             }).catch(function (error) {
-                //console.log(error);
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('Unable to fetch authentication. Please try again.');
             });
         },
@@ -48661,8 +48657,9 @@ __webpack_require__(72);
          * After successful upload reload files and folders.
          */
         onComplete: function onComplete(file, response) {
+            this.showLoader = false;
             if (response.success) {
-                this.$refs.myVueDropzone.removeAllFiles();
+                //this.$refs.myVueDropzone.removeAllFiles();
                 __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifySuccess(response.message);
                 if (this.currentFolder.parentId > 0) {
                     this.getSubFolderAndFiles(this.currentFolder.parentId, false);
@@ -48676,8 +48673,10 @@ __webpack_require__(72);
                     __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError(response.error.message);
                 }
             }
+            this.$refs.myVueDropzone.removeAllFiles();
         },
         maxFilesExceeded: function maxFilesExceeded(file) {
+            this.showLoader = false;
             __WEBPACK_IMPORTED_MODULE_0__shared_Notify___default.a.methods.notifyError('You have reached max file upload limit. ' + file.name + ' has not been uploaded.');
         },
 
@@ -49154,8 +49153,7 @@ __webpack_require__(72);
             if (results == null) return "";else return results[1];
         }
 
-    },
-    mounted: function mounted() {}
+    }
 
 });
 
@@ -57047,6 +57045,8 @@ var render = function() {
                 )
               ]),
               _vm._v(" "),
+              _vm._m(1),
+              _vm._v(" "),
               _c("li", [
                 _c(
                   "a",
@@ -57189,7 +57189,7 @@ var render = function() {
             ? _c("div", [
                 _c("ul", [
                   _c("li", { staticClass: "mt-3" }, [
-                    _vm._m(1),
+                    _vm._m(2),
                     _vm._v(" "),
                     _c("ul", [
                       _c("li", [
@@ -57341,7 +57341,7 @@ var render = function() {
                 }
               },
               [
-                _vm._m(2),
+                _vm._m(3),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-body" }, [
                   _c("div", { staticClass: "box-body" }, [
@@ -57379,14 +57379,12 @@ var render = function() {
                   ])
                 ]),
                 _vm._v(" "),
-                _vm._m(3)
+                _vm._m(4)
               ]
             )
           ])
         ])
       ]),
-      _vm._v(" "),
-      _vm._m(4),
       _vm._v(" "),
       _c(
         "div",
@@ -57649,6 +57647,20 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
+    return _c("li", [
+      _c("a", { attrs: { href: "/google-login" } }, [
+        _c("i", {
+          staticClass: "fa fa-drive mr-2",
+          attrs: { "aria-hidden": "true" }
+        }),
+        _vm._v("Google Drive Authentication")
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
     return _c("a", { staticClass: "link-btn" }, [
       _c("i", { staticClass: "fa fa-pencil" }),
       _vm._v("Sign")
@@ -57681,16 +57693,6 @@ var staticRenderFns = [
         { staticClass: "btn btn-blue form-btn", attrs: { type: "submit" } },
         [_vm._v("Create Folder")]
       )
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "modal", attrs: { id: "modal-dropbox" } }, [
-      _c("div", { staticClass: "modal-dialog" }, [
-        _c("div", { staticClass: "modal-content" })
-      ])
     ])
   },
   function() {

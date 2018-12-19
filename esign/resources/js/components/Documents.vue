@@ -79,6 +79,9 @@
                     <li>
                         <a @click="mounted" class="link-btn" title="Dropbox Authentication"><i class="fa fa-dropbox mr-2" aria-hidden="true"></i>Dropbox Authentication</a>
                     </li>
+                    <li>
+                        <a href="/google-login"><i class="fa fa-drive mr-2" aria-hidden="true"></i>Google Drive Authentication</a>
+                    </li>
                     <!--<li>
                         <a class="link-btn" title="Upload Files"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Upload Documents</a>
                     </li>-->
@@ -157,13 +160,13 @@
                 </div>
             </div>
         </div>
-        <div class="modal" id="modal-dropbox">
+        <!--<div class="modal" id="modal-dropbox">
             <div class="modal-dialog">
                 <div class="modal-content">
 
                 </div>
             </div>
-        </div>
+        </div>-->
         <!--MODAl FOR NEW IGNATURE CREATE-->
         <div v-bind:class="getSignatureModalClass()" class="modal1 SignatureModal" id="modal-new-signature">
             <div class="modal-dialog">
@@ -292,13 +295,12 @@
                 passData:{
                     password:'',
                     passProtctedDocUrl:''
-                }
+                },
             }
         },
         created: function () {
             this.showLoader = true;
             this.getFolders();
-
         },
         components: {
             vueDropzone: vue2Dropzone,
@@ -490,20 +492,13 @@
              * 
              */
             sendingEvent: function(file,xhr,formData){
-                console.log('sendingEvent');
+                this.showLoader = true;
                 formData.append('user_directory_id',this.currentFolder.parentId);
             },
             mounted: function(){
-                //console.log('mounted');
                 Axios.get(common.data().serverPath + 'get-auth-url').then((response) => {
-                     //url =  response.data;
-                     //console.log(response.data);
                     this.openDropboxLogin(response.data.authUrl,response.data.redirectUrl,);
-                    /*$('#modal-dropbox .modal-content').html(response.data)
-                    //$('#modal-dropbox .modal-content').html('<iframe style="border: 0px; " src="' +url + '" width="100%" height="100%"></iframe>')
-                    $('#modal-dropbox').modal('show');*/
                 }).catch((error) => {
-                    //console.log(error);
                     notify.methods.notifyError('Unable to fetch authentication. Please try again.');
                 })
 
@@ -513,8 +508,9 @@
              * After successful upload reload files and folders.
              */
             onComplete : function(file, response){
+                this.showLoader = false;
                 if(response.success){
-                    this.$refs.myVueDropzone.removeAllFiles();
+                    //this.$refs.myVueDropzone.removeAllFiles();
                     notify.methods.notifySuccess(response.message);
                     if (this.currentFolder.parentId > 0) {
                         this.getSubFolderAndFiles(this.currentFolder.parentId, false);
@@ -528,9 +524,10 @@
                         notify.methods.notifyError(response.error.message);
                     }
                 }
-                
+                this.$refs.myVueDropzone.removeAllFiles();
             },
             maxFilesExceeded : function (file){
+                this.showLoader = false;
                 notify.methods.notifyError('You have reached max file upload limit. '+file.name+' has not been uploaded.');
             },
 
@@ -991,9 +988,9 @@
                     return results[1];
             },
 
+
         },
-        mounted : function() {
-        },
+
 
     }
 

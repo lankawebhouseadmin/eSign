@@ -126,4 +126,7 @@ class MyFiles extends Controller
     public function getAuthorizationUrl(){
         return $this->myFiles->getAuthorizationUrl();
     }
+    public function googleLogin(Request $request){
+        return $this->myFiles->googleLogin($request);
+    }
 }
