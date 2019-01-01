@@ -2,6 +2,94 @@
     <div class="container-fluid">
         <div class="position-relative">
             <div class="folder-list-wrapper">
+                <div class="folders_list" style="padding-top: 10px;">
+                    <ul uk-accordion>
+                        <li v-if="driveDirs.length || driveFiles.length">
+                            <a class="uk-accordion-title" href="#"><i class="fa fa-folder"></i>&nbsp;My Drive</a>
+                            <div class="uk-accordion-content">
+                                <ul v-if="driveDirs.length" uk-accordion class="inner_accord" >
+                                    <li v-for="(driveDir, index) in driveDirs">
+                                        <a class="uk-accordion-title title_inner" href="#" @click="getGoogleDriveSubFilesFolders(driveDir.path,$event)" ><i class="fa fa-folder"></i>&nbsp; {{driveDir.name}}</a>
+                                        <div class="uk-accordion-content sub_content">
+                                            <!--<a href="#"><i class="fa fa-file"></i>&nbsp; Inner File</a>-->
+                                        </div>
+                                    </li>
+                                </ul>
+                                <ul v-if="driveFiles.length" class="inner_accord">
+                                    <li v-for="(driveFile, index) in driveFiles" >
+                                        <a href="#"><i class="fa fa-file"></i>&nbsp; {{driveFile.name}}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li v-if="dropboxDirs.length || dropboxFiles.length">
+                            <a class="uk-accordion-title" href="#"><i class="fa fa-folder"></i>&nbsp;My Dropbox</a>
+                            <div class="uk-accordion-content">
+                                <ul v-if="dropboxDirs.length" uk-accordion class="inner_accord">
+                                    <li v-for="(dropboxDir, index) in dropboxDirs" >
+                                        <a class="uk-accordion-title title_inner" href="#" @click="getDropboxSubFilesFolders(dropboxDir.id,$event)"><i class="fa fa-folder"></i>&nbsp; {{dropboxDir.name}}</a>
+                                        <div class="uk-accordion-content sub_content">
+                                            <!--<a href="#"><i class="ti ti-file"></i>&nbsp; Inner File</a>-->
+                                        </div>
+                                    </li>
+                                </ul>
+                                <ul v-if="dropboxFiles.length" uk-accordion class="inner_accord">
+                                    <li v-for="(dropboxFile, index) in dropboxFiles" >
+                                        <a href="#"><i class="fa fa-file"></i>&nbsp; {{dropboxFile.name}}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <!--<div v-if="driveDirs.length || driveFiles.length" class="drive-data ">
+                    <h3 class="folder-navigation" > My Drive </h3>
+                    <div class="folder-container mt-3">
+                        <ul v-if="driveDirs.length" class="drive-folders">
+                            <li v-for="(driveDir, index) in driveDirs" class="folder-box position-relative">
+                                <a class="link-btn" @click="getDriveSubFolderAndFiles(driveDir.basename)">
+                                    <div class="folder">
+                                        <i class="fa fa-folder mr-2" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="folder-text" v-bind:title="driveDir.name">{{driveDir.name}}</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="documents-container">
+                        <ul v-if="driveFiles.length" class="drive-folders">
+                            <li v-for="(driveFile, index) in driveFiles" class="folder-box position-relative">
+                                <a class="link-btn" @click="getDriveFilesPreview(driveFile.path)">
+                                    <i class="file" ></i><span class="folder-text" v-bind:title="driveFile.name">{{driveFile.name}}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>-->
+                <!--<div v-if="dropboxDirs.length || dropboxFiles.length" class="drive-data">
+                    <h3 class="folder-navigation" > My Dropbox </h3>
+                    <div class="folder-container mt-3">
+                        <ul v-if="dropboxDirs.length" class="drive-folders">
+                            <li v-for="(dropboxDir, index) in dropboxDirs" class="folder-box position-relative">
+                                <a class="link-btn" @click="getDropboxSubFolderAndFiles(dropboxDir.path)">
+                                    <div class="folder">
+                                        <i class="fa fa-folder mr-2" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="folder-text" v-bind:title="dropboxDir.name">{{dropboxDir.name}}</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="documents-container">
+                        <ul v-if="dropboxFiles.length" class="drive-folders">
+                            <li v-for="(dropboxFile, index) in dropboxFiles" class="folder-box position-relative">
+                                <a class="link-btn" @click="getDropoxFilesPreview(dropboxFile.path)">
+                                    <i class="file" ></i><span class="folder-text" v-bind:title="dropboxFile.name">{{dropboxFile.name}}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>-->
                 <section class="folder-navigation">
                     <h3 class="folder-navigation" @click="getFolders">
                         My Documents
@@ -32,13 +120,15 @@
                         </li>
                     </ul>
                     <div v-if="!folders.length && !documents.length" class="empty-directory">This folder is empty.</div>
+
                     <div class="clearfix"></div>
                 </div>
 
                 <div class="documents-container">
                     <ul v-if="documents.length">
                         <li v-for="(document, index) in documents">
-                            <a class="link-btn" @click="previewDocument(document.id)">
+                            <!--<a class="link-btn" @click="previewDocument(document.id)">-->
+                            <a class="link-btn" @click="viewDocument(document.id)">
                                 <i v-bind:class="getDocumentIcon(document.file_name)" class="file" ></i><span class="folder-text" v-bind:title="document.file_name">{{document.file_name}}</span>
                                 
                             </a>
@@ -70,18 +160,61 @@
                     <div class="backBtn"><button type="button" class="btn btn-md access-button form-btn" @click="backToDocuments" style="padding: 2px 10px; box-shadow: none;"><i class="fa fa-arrow-left mr-2" aria-hidden="true"></i>Go Back To Documents</button></div>
                     <!--<iframe v-if="pdfFile"  class="img" v-bind:src="docPreviewUrl" width="100%" height="500px" border="0"></iframe>-->
                     <div v-if="pdfFile" id="holder"></div>
-                    <VueDocPreview v-else v-bind:value="docPreviewUrl" type="office" />
+                    <!--<VueDocPreview v-else v-bind:value="docPreviewUrl" type="office" />-->
+                    <iframe v-else v-bind:src="docPreviewUrl" width="100%" height="1000px" frameborder="0"></iframe>
 
                 </div>
+                <div class="drive_dropbox">
+                    <div class="row">
+                        <div class="offset-md-1 col-4 text-center">
+                            <div class="jumbotron">
+                                <div class="dropbox text-center">
+                                    <p><i class="fa fa-dropbox mr-2 fa-3x" aria-hidden="true"></i></p>
+                                    <span class="dname">Dropbox</span>
+                                    <span v-if="isDropboxVerified" class="">
+                                        <a v-if="isDropboxEnabled" class="">Disable</a>
+                                        <a v-else class="">Enable</a>
+                                        <button class="btn btn-primary"><i class="fa fa-check-square mr-2" aria-hidden="true"></i>Verified</button>
+                                        <a class="">Update Files</a>
+                                    </span>
+                                    <span v-else class="">
+                                        <a @click="mounted" class="btn btn-primary">Setup Access</a>
+
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="offset-md-2 col-4 text-center">
+                            <div class="jumbotron">
+                                <div class="dropbox text-center">
+                                    <p><i class="fa fa-google mr-2 fa-3x" aria-hidden="true"></i></p>
+                                    <span class="dname">Google Drive</span>
+                                    <span v-if="isDriveVerified" class="">
+                                        <a v-if="isDriveEnabled" class="">Disable</a>
+                                        <a v-else class="">Enable</a>
+                                        <button class="btn btn-primary"><i class="fa fa-check-square mr-2" aria-hidden="true"></i>Verified</button>
+                                        <a class="">Update Files</a>
+
+                                    </span>
+                                    <span v-else class="">
+                                        <a href="/google-login" class="btn btn-primary">Setup Access</a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
             </div>
             <div class="file-tool">
                 <ul class="file-tool-list" id="file-tool-list">
-                    <li>
+                    <!--<li>
                         <a @click="mounted" class="link-btn" title="Dropbox Authentication"><i class="fa fa-dropbox mr-2" aria-hidden="true"></i>Dropbox Authentication</a>
                     </li>
                     <li>
                         <a href="/google-login"><i class="fa fa-drive mr-2" aria-hidden="true"></i>Google Drive Authentication</a>
-                    </li>
+                    </li>-->
                     <!--<li>
                         <a class="link-btn" title="Upload Files"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Upload Documents</a>
                     </li>-->
@@ -118,7 +251,7 @@
                     </ul>
                 </div>
                 <!--<div><ul class="signs"><li><a id="1" class="link-btn"><img src="http://localhost:8000/storage/1/signatures/1543995430.png" draggable="true" style="width: 50px; height: 50px;"> <span title="1543995430.png" class="folder-text">1543995430.png</span></a> <span class="document-delete pull-right"><i class="fa fa-trash "></i></span></li><li><a id="2" class="link-btn"><img src="http://localhost:8000/storage/1/signatures/1543996234.png" draggable="true" style="width: 50px; height: 50px;"> <span title="1543996234.png" class="folder-text">1543996234.png</span></a> <span class="document-delete pull-right"><i class="fa fa-trash "></i></span></li></ul></div>-->
-                <div v-bind:class="storedSignature" class="signsDiv">
+                <!--<div v-bind:class="storedSignature" class="signsDiv">
                     <ul v-if="signaures.length" class="signs">
                         <li v-for="(signaure, index) in signaures">
                             <a class="link-btn" v-bind:id="signaure.id">
@@ -128,7 +261,7 @@
                             </a>
                         </li>
                     </ul>
-                </div>
+                </div>-->
             </div>
         </div>
 
@@ -244,7 +377,7 @@
     import common from './shared/Common'
     import vue2Dropzone from 'vue2-dropzone'
     import 'vue2-dropzone/dist/vue2Dropzone.min.css'
-    import VueDocPreview from 'vue-doc-preview'
+    /*import VueDocPreview from 'vue-doc-preview'*/ //need to remove
     import VueSignaturePad from 'vue-signature-pad';
 
     Vue.use(VueSignaturePad);
@@ -252,6 +385,7 @@
     require('../main');
     export default {
         name: "documents",
+        props:['sessionData'],
         data: function () {
             return {
                 showLoader: false,
@@ -296,7 +430,33 @@
                     password:'',
                     passProtctedDocUrl:''
                 },
+                isDropboxVerified:false,
+                isDriveVerified:false,
+                isDropboxEnabled:false,
+                isDriveEnabled:false,
+                driveDirs:[],
+                driveFiles:[],
+                dropboxDirs:[],
+                dropboxFiles:[],
             }
+        },
+        mounted:function() {
+            var docData = JSON.parse(this.sessionData);
+            if(docData.dropboxToken==1){
+                this.isDropboxVerified = true;
+            }
+            if(docData.driveToken==1){
+                this.isDriveVerified = true;
+            }
+            if(docData.isEnabledDriveToken==1){
+                this.isDriveEnabled = true;
+                this.getGoogleDriveFiles();
+            }
+            if(docData.isEnabledDropboxToken==1){
+                this.isDropboxEnabled = true;
+                this.getDropboxFiles();
+            }
+
         },
         created: function () {
             this.showLoader = true;
@@ -304,7 +464,7 @@
         },
         components: {
             vueDropzone: vue2Dropzone,
-            VueDocPreview
+            /*VueDocPreview*/
         },
         methods: {
             /**
@@ -540,13 +700,16 @@
                 const url = common.data().serverPath + 'get-document/' + documentId + '/' + this.currentFolder.parentId;
                 Axios.get(url).then((response) => {
                     if (response.data.success) {
+                        this.docPreviewUrl = response.data.data.url;
                         if(response.data.data.mimeType != 'application/pdf'){
                             this.pdfFile=false;
+                            this.docPreviewUrl = 'https://view.officeapps.live.com/op/embed.aspx?src='+this.docPreviewUrl
                         }else{
                             this.pdfFile=true;
+                            this.getPreview(this.docPreviewUrl);
                         }
-                        this.docPreviewUrl = response.data.data.url;
-                        this.getPreview(this.docPreviewUrl);
+
+
                         this.showLoader = false;
                         this.showPreview = true;
                     } else {
@@ -971,6 +1134,8 @@
 
                         if (url.indexOf(redirectUrl) != -1) {
                             window.clearInterval(pollTimer);
+                            this.isDropboxVerified = true;
+                            this.isDropboxEnabled = true;
                             win.close();
                             /*var code =   this.gup(url, 'code','&');
                             var state =   this.gup(url, 'state','?');*/
@@ -989,6 +1154,137 @@
                     return "";
                 else
                     return results[1];
+            },
+            viewDocument: function (documentId) {
+                //console.log(documetnId);
+                window.location.href = common.data().serverPath + 'myfiles/view/' + this.currentFolder.parentId + '/' + documentId;
+            },
+            getGoogleDriveFiles: function(){
+                this.showLoader = true;
+                const url = common.data().serverPath + 'myfiles/get-google-drive-files';
+                Axios.get(url).then((response) => {
+                    this.showLoader = false;
+                    if (response.data.success) {
+                        let dirs = [];
+                        let files = [];
+                        $.each(response.data.data.dir, function(key, value) {
+                            dirs.push(value);
+                        });
+                        this.driveDirs = dirs;
+                        $.each(response.data.data.files, function(key, value) {
+                            files.push(value);
+                        });
+                        this.driveFiles = files;
+                    } else {
+                        notify.methods.notifyError(response.data.error.message);
+                    }
+                })
+                .catch((error) => {
+                    this.showLoader = false;
+                    notify.methods.notifyError('Something went wrong. Please refresh the page.');
+                })
+            },
+            getDropboxFiles: function(){
+                this.showLoader = true;
+                const url = common.data().serverPath + 'myfiles/get-dropbox-files';
+                Axios.get(url).then((response) => {
+                    this.showLoader = false;
+                    if (response.data.success) {
+                        let dirs = [];
+                        let files = [];
+                        $.each(response.data.data.dir, function(key, value) {
+                            dirs.push(value);
+                        });
+                        this.dropboxDirs = dirs;
+                        $.each(response.data.data.files, function(key, value) {
+                            files.push(value);
+                        });
+                        this.dropboxFiles = files;
+                    } else {
+                        notify.methods.notifyError(response.data.error.message);
+                    }
+                })
+                .catch((error) => {
+                    this.showLoader = false;
+                    notify.methods.notifyError('Something went wrong. Please refresh the page.');
+                })
+            },
+            getGoogleDriveSubFilesFolders: function(path,e){
+                var element = e.target,html='';
+                var className =  element.className;
+                element.className = className+' active';
+                //console.log(className);
+                this.showLoader = true;
+                const url = common.data().serverPath + 'myfiles/get-google-drive-files';
+                Axios.post(url,{path: path}).then((response) => {
+                    this.showLoader = false;
+                    if (response.data.success) {
+                        /*let dirs = [];
+                        let files = [];*/
+                        let dirs = response.data.data.dir;
+                        if(dirs.length){
+                            html = '<ul uk-accordion class="inner_accord" >';
+                            $.each(response.data.data.dir, function(key, value) {
+                                /*dirs.push(value);*/
+                                html += '<li><a class="uk-accordion-title title_inner" href="#" @click="getGoogleDriveSubFilesFolders(value.path,$event)" ><i class="fa fa-folder"></i>'+value.name+'</a><div class="uk-accordion-content sub_content"></div></li>';
+
+                            });
+                            html += '</ul>';
+                        }
+                        var classNameNew =  element.className;
+                        classNameNew = classNameNew.split(' ').join('.');
+                        console.log(classNameNew);
+                        console.log($('.'+classNameNew));
+                        console.log($('.'+classNameNew).closest('li'));
+                        console.log($('.'+classNameNew).closest('li').find('.sub_content'));
+                        $('.'+classNameNew).closest('li').find('.sub_content').append(html);
+                        //element.className = className
+                        //console.log(html);
+                        let files = response.data.data.files;
+                        if(files.length){
+                            html = '<ul class="inner_accord">';
+                            $.each(files, function(key, value) {
+                                html += '<li><a href="#" @click="getGoogleDriveSubFilesFolders('+value.path+')" ><i class="fa fa-folder"></i>'+value.name+'</a><div class="uk-accordion-content sub_content"></div></li>';
+                            });
+                            html += '</ul>';
+                        }
+                        //console.log(html);
+                        $('.'+classNameNew).closest('li').find('.sub_content').append(html);
+                        element.className = className;
+
+                    } else {
+                        notify.methods.notifyError(response.data.error.message);
+                    }
+                })
+                    .catch((error) => {
+                        this.showLoader = false;
+                        console.log(error);
+                        notify.methods.notifyError('Something went wrong. Please refresh the page.');
+                    })
+            },
+            getDropboxSubFilesFolders: function(path,e){
+                console.log(e.target);
+                this.showLoader = true;
+                const url = common.data().serverPath + 'myfiles/get-dropbox-files';
+                Axios.post(url,{path: path}).then((response) => {
+                    this.showLoader = false;
+                    if (response.data.success) {
+                        let dirs = [];
+                        let files = [];
+                        $.each(response.data.data.dir, function(key, value) {
+                            dirs.push(value);
+                        });
+                        $.each(response.data.data.files, function(key, value) {
+                            files.push(value);
+                        });
+                    } else {
+                        notify.methods.notifyError(response.data.error.message);
+                    }
+                })
+                .catch((error) => {
+                    this.showLoader = false;
+                    notify.methods.notifyError('Something went wrong. Please refresh the page.');
+                })
             },
 
 

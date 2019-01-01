@@ -129,4 +129,16 @@ class MyFiles extends Controller
     public function googleLogin(Request $request){
         return $this->myFiles->googleLogin($request);
     }
+    public function viewDocument($folerId,$documentId){
+        return $this->myFiles->viewDocument($folerId,$documentId);
+    }
+    public function signSignatures(Request $request){
+        return $this->myFiles->signSignatures($request->all());
+    }
+    public function getGoogleDriveFiles(Request $request){
+        return $this->myFiles->getGoogleDriveFiles($request);
+    }
+    public function getDropboxFiles(Request $request){
+        return $this->myFiles->getDropboxFiles($request);
+    }
 }

@@ -35,6 +35,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('get-auth-url', 'MyFiles@getAuthorizationUrl');
     /*Route::post('upload-signature','MyFiles@uploadSignature');*/
     Route::get('google-login',array('as'=>'google-login','uses'=>'MyFiles@googleLogin')) ;
+    Route::get('/myfiles/view/{folderId}/{documentId}','MyFiles@viewDocument');
+    Route::post('sign-signature','MyFiles@signSignatures');
+    Route::match(['get', 'post'],'/myfiles/get-google-drive-files','MyFiles@getGoogleDriveFiles');
+    Route::match(['get', 'post'],'/myfiles/get-dropbox-files','MyFiles@getDropboxFiles');
 });
 
 //Route::group(['prefix' => 'admin',  'middleware' => 'auth:admin'], function() {

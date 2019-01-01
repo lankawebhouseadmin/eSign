@@ -5,6 +5,7 @@ use App\Models\UserDirectory;
 use App\Models\UserParentDirectory;
 use App\Models\UserDocuments;
 use App\Models\UserSignatures;
+use App\Models\UserCloudTokens;
 use App\DAL\CommonRepository as common;
 use App\User;
 use Auth;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
 use Stevenmaguire\OAuth2\Client\Provider\Dropbox;
 use Illuminate\Support\Facades\Session;
+/*use Elibyy\TCPDF\Facades\TCPDF;*/
+use setasign\Fpdi\Fpdi;
 
 class MyFilesRepository extends Repository
 {
@@ -577,8 +580,22 @@ class MyFilesRepository extends Repository
                 'code' => $_GET['code']
             ]);
 
-            $dt = $token->getToken();
-            Session::put('dropboxToken', $dt);
+            $dtToken = $token->getToken();
+            Session::put('dropboxToken', $dtToken);
+            $userId = Auth::user()->id;
+
+            Db::beginTransaction();
+
+            // create user token model object to store the data
+            $count = UserCloudTokens::updateOrCreate(['user_id'=>$userId,'type'=>'Dropbox'],['access_token'=>$dtToken]);
+            /*$userToken = new UserCloudTokens();
+            $userToken->user_id = $userId;
+            $userToken->type = 'Dropbox';
+            $userToken->access_token = $dtToken;
+
+            $userToken->save();*/
+
+            DB::commit();
             // Use this to interact with an API on the users behalf
             //return $token->getToken();
 
@@ -589,22 +606,34 @@ class MyFilesRepository extends Repository
         $google_oauthV2 = new \Google_Service_Oauth2($this->gClient);
         if ($request->get('code')){
             $this->gClient->authenticate($request->get('code'));
-            $request->session()->put('token', $this->gClient->getAccessToken());
+            $request->session()->put('driveToken', $this->gClient->getAccessToken());
 
         }
-        if ($request->session()->get('token'))
+        if ($request->session()->get('driveToken'))
         {
-            $this->gClient->setAccessToken($request->session()->get('token'));
+            $this->gClient->setAccessToken($request->session()->get('driveToken'));
         }
         if ($this->gClient->getAccessToken())
         {
             $userId = Auth::user()->id;
             //For logged in user, get details from google using acces
-            $user=User::find($userId);
+            /*$user=User::find($userId);
             //dd($user);
             $user->access_token=json_encode($request->session()->get('token'));
-            $user->save();
-            //dd("Successfully authenticated");
+            $user->save();*/
+
+            Db::beginTransaction();
+
+            // create user token model object to store the data
+            $count = UserCloudTokens::updateOrCreate(['user_id'=>$userId,'type'=>'gDrive'],['access_token'=>json_encode($request->session()->get('driveToken'))]);
+            /*$userToken = new UserCloudTokens();
+            $userToken->user_id = $userId;
+            $userToken->type = 'gDrive';
+            $userToken->access_token = json_encode($request->session()->get('token'));
+
+            $userToken->save();*/
+
+            DB::commit();
             return redirect()->to(route('myfiles'));
         } else
         {
@@ -614,62 +643,94 @@ class MyFilesRepository extends Repository
         }
     }
     public function uploadFileUsingAccessToken($fileName,$filePath,$mimeType,$folderName){
+        try{
+            $this->setGoogleDriveStorage();
+            /*$cloudTokens = UserCloudTokens::where('user_id',$userId)->get();
+            $cloudTokens = $cloudTokens->toArray();
+            foreach($cloudTokens as $token){
+                if($token['type']=='gDrive'){
+                    Session::put('driveToken',$token['access_token']);
+                }
+            }
+            $this->gClient->setAccessToken(json_decode(Session::get('driveToken'),true));
+//            $user=User::find($userId);
+//            $this->gClient->setAccessToken(json_decode($user->access_token,true));
+            if ($this->gClient->isAccessTokenExpired()) {
 
-        $userId = Auth::user()->id;
-        $user=User::find($userId);
-        $this->gClient->setAccessToken(json_decode($user->access_token,true));
-        if ($this->gClient->isAccessTokenExpired()) {
+                // save refresh token to some variable
+                $refreshTokenSaved = $this->gClient->getRefreshToken();
+                // update access token
+                $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+                // // pass access token to some variable
+                $updatedAccessToken = $this->gClient->getAccessToken();
+                // // append refresh token
+                $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+                //Set the new acces token
+                $this->gClient->setAccessToken($updatedAccessToken);
 
-            // save refresh token to some variable
-            $refreshTokenSaved = $this->gClient->getRefreshToken();
-            // update access token
-            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
-            // // pass access token to some variable
-            $updatedAccessToken = $this->gClient->getAccessToken();
-            // // append refresh token
-            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
-            //Set the new acces token
-            $this->gClient->setAccessToken($updatedAccessToken);
+//                $user->access_token=json_encode($updatedAccessToken);
+//                $user->save();
+                Db::beginTransaction();
 
-            $user->access_token=json_encode($updatedAccessToken);
-            $user->save();
-        }
-        \Storage::extend('google', function() {
+                // create user token model object to store the data
+                $count = UserCloudTokens::updateOrCreate(['user_id'=>$userId,'type'=>'gDrive'],['access_token'=>json_encode($updatedAccessToken)]);
+                Session::put('driveToken',json_encode($updatedAccessToken));
+//                $userToken = new UserCloudTokens();
+//                $userToken->user_id = $userId;
+//                $userToken->type = 'gDrive';
+//                $userToken->access_token = json_encode($updatedAccessToken);
+//
+//                $userToken->save();
 
-            $this->gService = new \Google_Service_Drive($this->gClient);
-            $options = [];
-            if(config('filesystems.disks.google.teamDriveId')) {
-                $options['teamDriveId'] = config('filesystems.disks.google.teamDriveId');
+                DB::commit();
+
+            }
+            \Storage::extend('google', function() {
+
+                $this->gService = new \Google_Service_Drive($this->gClient);
+                $options = [];
+                if(config('filesystems.disks.google.teamDriveId')) {
+                    $options['teamDriveId'] = config('filesystems.disks.google.teamDriveId');
+                }
+
+                $adapter = new \Hypweb\Flysystem\GoogleDrive\GoogleDriveAdapter($this->gService, config('filesystems.disks.google.folderId'), $options);
+
+                return new \League\Flysystem\Filesystem($adapter);
+            });*/
+
+
+            $rteSign = $this->createFolderIfNotExist('eSign','');
+            if($folderName || ($folderName == 0 && $folderName != '')){
+                $documentsId = $this->createFolderIfNotExist('Documents',$rteSign);
+                $folderId = $this->createFolderIfNotExist($folderName,$documentsId);
+            }else{
+                $folderId = $this->createFolderIfNotExist('Signatures',$rteSign);
             }
 
-            $adapter = new \Hypweb\Flysystem\GoogleDrive\GoogleDriveAdapter($this->gService, config('filesystems.disks.google.folderId'), $options);
 
-            return new \League\Flysystem\Filesystem($adapter);
-        });
-
-
-        $rteSign = $this->createFolderIfNotExist('eSign','');
-        if($folderName || ($folderName == 0 && $folderName != '')){
-            $documentsId = $this->createFolderIfNotExist('Documents',$rteSign);
-            $folderId = $this->createFolderIfNotExist($folderName,$documentsId);
-        }else{
-            $folderId = $this->createFolderIfNotExist('Signatures',$rteSign);
+            $file = new \Google_Service_Drive_DriveFile(array(
+                'name' => $fileName,
+                'parents' => array($folderId)
+            ));
+            $result = $this->gService->files->create($file, array(
+                'data' => file_get_contents(public_path($filePath)),
+                'mimeType' => $mimeType,
+                'uploadType' => 'media'
+            ));
+            // get url of uploaded file
+            $url='https://drive.google.com/open?id='.$result->id;
+            return $url;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+            return $response;
         }
-
-
-        $file = new \Google_Service_Drive_DriveFile(array(
-            'name' => $fileName,
-            'parents' => array($folderId)
-        ));
-        $result = $this->gService->files->create($file, array(
-            'data' => file_get_contents(public_path($filePath)),
-            'mimeType' => $mimeType,
-            'uploadType' => 'media'
-        ));
-        // get url of uploaded file
-        $url='https://drive.google.com/open?id='.$result->id;
-        return $url;
-
     }
     public function createFolderIfNotExist($folderName,$parentId=''){
         $rootId = ($parentId)?$parentId:'/';
@@ -697,5 +758,272 @@ class MyFilesRepository extends Repository
             return $dir['basename'];
         }
     }
+    public function viewDocument($folderId,$documentId){
+        $userId = Auth::user()->id;
+        try {
+            $data = [];
+            Db::beginTransaction();
 
+            $document = DB::table('user_documents as ud')
+                ->where('ud.id', $documentId)
+                ->where('ud.user_id', $userId)
+                ->where('ud.user_directory_id', $folderId)
+                ->whereNull('ud.deleted_at')->first();
+            DB::commit();
+
+            $documentPath = $document->file_path;
+            $exists = Storage::disk('public')->exists($documentPath);
+            if($exists){
+                $data['id'] = $document->id;
+                $data['url'] = url('/').Storage::url($documentPath);
+                $data['mimeType'] = Storage::disk('public')->mimeType($documentPath);
+            }
+            $response = array($this->common->success => true, 'data' => $data);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        //return Response::json($response);
+        return view('viewfiles',$response);
+    }
+    public function signSignatures($data){
+        //dd($data);
+        // Post data
+        $positions = json_decode($data['positions'], true);
+        $docId = $data['docId'];
+        $docUrl = $data['docUrl'];
+        $userId = Auth::user()->id;
+        try {
+            $array = [];
+            Db::beginTransaction();
+
+            $document = DB::table('user_documents as ud')
+                ->where('ud.id', $docId)
+                ->where('ud.user_id', $userId)
+                ->whereNull('ud.deleted_at')->first();
+            DB::commit();
+
+            $documentPath = $document->file_path;
+            $newFile = $document->file_name;
+            $userDirectoryId = $document->user_directory_id;
+            $exists = Storage::disk('public')->exists($documentPath);
+            if($exists){
+                $url = Storage::url($documentPath);
+                $fh = fopen(public_path($url), 'rb');
+                //dd($fh);
+                //dd($url);
+                $pdf = new Fpdi();
+                $pdf->AddPage();
+                $numPages = $pdf->setSourceFile($fh);
+                //dd($numPages);
+                foreach(range(1, $numPages, 1) as $page) {
+
+                    if($page !== 1) {
+                        $pdf->AddPage();
+                    }
+
+                    // Add a page
+                    $_tplIdx = $pdf->importPage($page);
+                    $pdf->useTemplate($_tplIdx);
+
+                    foreach($positions as $position) {
+
+                        if(((int) $position['pageNumber']) === $page) {
+
+                            // Calculate signature center positioning
+                            $x_pos = (string) ($position['xPosition'] - 30);
+                            $y_pos = (string) ($position['yPosition'] - 25);
+
+                            // Add the signature
+                            /*$pdf->setJPEGQuality(90);
+                            $pdf->setImageScale(1);*///tcpdf methods
+                            //dd($position['signatureFile']);
+                            //dd(substr($position['signatureFile'], strpos($position['signatureFile'], ",")+1));
+                            $base64_str = substr($position['signatureFile'], strpos($position['signatureFile'], ",")+1);
+                            $pic = 'data://text/plain;base64,'. $base64_str;
+                            $type = explode("/", explode(':', substr($position['signatureFile'], 0, strpos($position['signatureFile'], ';')))[1])[1]; // get the image type
+                            //dd($type);
+                            /*
+
+                            //decode base64 string
+                            $image = base64_decode($base64_str);
+                            $f = finfo_open();
+                            $mimeType = finfo_buffer($f, $image, FILEINFO_MIME_TYPE);
+                            $type = substr($mimeType, strpos($mimeType, "/")+1);
+                            //dd($type);
+                            $pdf->Image($position['signatureFile'], $x_pos, $y_pos, 200, 0, $type, '', 'T', false, 4800, '', false, false, 0, 'LT');*/
+                            $pdf->Image($pic, $x_pos, $y_pos,200,0, $type);
+
+                        }
+
+                    }
+                }
+                $pathToStoreFile = $userId . "/documents/signed/" . $userDirectoryId;
+                /*Storage::disk('public')->put($pathToStoreFile.'/'.$newFile, $image);*/
+
+                $destination = Storage::url($pathToStoreFile.'/'.$newFile);
+                $pdf->Output('F',public_path($destination));
+                //dd($destination);
+
+            }
+            $response = array($this->common->success => true, 'data' => $data);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        return Response::json($response);
+        /*$html = '<h1>Hello world</h1>';
+        $pdf = new TCPDF();
+        $pdf::SetTitle('Hello World');
+        $pdf::AddPage();
+        $pdf::writeHTML($html, true, false, true, false, '');
+        $pdf::Output(public_path('hello_world.pdf'), 'F');*/
+    }
+    public function getGoogleDriveFiles($request){
+        try{
+            $this->setGoogleDriveStorage();
+            $rootId = ($request->isMethod('post')) ? $request->path : '/';
+            /*if($request->isMethod('post')){
+                $rootId = $request->path;
+            }else{
+                $rootId = '/';
+            }*/
+            //$rootId = ($parentId)?$parentId:'/';
+            $contents = collect(Storage::disk('google')->listContents($rootId, false));
+            //dd($contents);
+            $dir = $contents->where('type', '=', 'dir')->all();
+            //$files = Storage::disk('google')->files($rootId);
+            $files = $contents->where('type', '=', 'file')->all();
+            $data['dir'] = $dir;
+
+            //if found directory than call again for sub directory and folder
+
+            $data['files'] = $files;
+            //dd($data);
+            $response = array($this->common->success => true, 'data' => $data);
+        }catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        return Response::json($response);
+    }
+    public function setGoogleDriveStorage(){
+        $userId = Auth::user()->id;
+        $cloudTokens = UserCloudTokens::where('user_id',$userId)->get();
+        $cloudTokens = $cloudTokens->toArray();
+        foreach($cloudTokens as $token){
+            if($token['type']=='gDrive'){
+                Session::put('driveToken',$token['access_token']);
+            }
+        }
+        $this->gClient->setAccessToken(json_decode(Session::get('driveToken'),true));
+        /*$user=User::find($userId);
+        $this->gClient->setAccessToken(json_decode($user->access_token,true));*/
+        if ($this->gClient->isAccessTokenExpired()) {
+
+            // save refresh token to some variable
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+            // update access token
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+            // // pass access token to some variable
+            $updatedAccessToken = $this->gClient->getAccessToken();
+            // // append refresh token
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+            //Set the new acces token
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            /*$user->access_token=json_encode($updatedAccessToken);
+            $user->save();*/
+            Db::beginTransaction();
+
+            // create user token model object to store the data
+            $count = UserCloudTokens::updateOrCreate(['user_id'=>$userId,'type'=>'gDrive'],['access_token'=>json_encode($updatedAccessToken)]);
+            Session::put('driveToken',json_encode($updatedAccessToken));
+            /*$userToken = new UserCloudTokens();
+            $userToken->user_id = $userId;
+            $userToken->type = 'gDrive';
+            $userToken->access_token = json_encode($updatedAccessToken);
+
+            $userToken->save();*/
+
+            DB::commit();
+
+        }
+        \Storage::extend('google', function() {
+
+            $this->gService = new \Google_Service_Drive($this->gClient);
+            $options = [];
+            if(config('filesystems.disks.google.teamDriveId')) {
+                $options['teamDriveId'] = config('filesystems.disks.google.teamDriveId');
+            }
+
+            $adapter = new \Hypweb\Flysystem\GoogleDrive\GoogleDriveAdapter($this->gService, config('filesystems.disks.google.folderId'), $options);
+
+            return new \League\Flysystem\Filesystem($adapter);
+        });
+    }
+    public function getDropboxFiles($request){
+        try{
+            $rootId = ($request->isMethod('post')) ? $request->path : '/';
+            /*if($request->isMethod('post')){
+                $rootId = $request->path;
+            }else{
+                $rootId = '/';
+            }*/
+            $tokenn = Session::get('dropboxToken');
+            if($tokenn){
+                $Client = new Client($tokenn);
+                //$rootId = ($parentId)?$parentId:'/';
+                $list = $Client->listFolder($rootId,false);
+                $entries = $list['entries'];
+                $dir = [];$files=[];
+                foreach($entries as $entry){
+                    if($entry['.tag']=='folder'){
+                        array_push($dir,$entry);
+                    }else{
+                        array_push($files,$entry);
+                    }
+                }
+                /*$contents = collect($list['entries']);
+                //dd($contents);
+                $dir = $contents->where('name', '=', 'test')->all();
+                //$files = Storage::disk('google')->files($rootId);
+                $files = $contents->where('tag', '=', 'file')->all();*/
+                $data['dir'] = $dir;
+                $data['files'] = $files;
+                //dd($data);
+                $response = array($this->common->success => true, 'data' => $data);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = array(
+                $this->common->success => false,
+                'error' => [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+        return Response::json($response);
+
+
+    }
 }

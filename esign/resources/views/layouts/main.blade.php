@@ -38,7 +38,7 @@
         <!-- jQuery 3 -->
         <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
         <script src="{{ asset('js/app.js') }}"></script>
-        <script src="{{ asset('js/libs/jquery-3.2.1.slim.min.js') }}"></script>
+        <script src="{{ asset('js/libs/jquery-3.2.1.min.js') }}"></script>
         <script src="{{ asset('js/libs/popper.min.js') }}"></script>
         <script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>
         
