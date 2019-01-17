@@ -767,7 +767,7 @@
                     reader.onerror = error => reject(error);
                 });
             },
-            closeDocPassword: function(){
+            closeDocPassword: function(){ 
                 this.isDocumentPasswordProtected = false;
                 this.passData.passProtctedDocUrl = '';
                 this.passData.password = '';
