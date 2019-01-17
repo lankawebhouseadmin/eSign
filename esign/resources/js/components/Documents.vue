@@ -94,6 +94,12 @@
                     <h3 class="folder-navigation" @click="getFolders">
                         My Documents
                     </h3>
+                    <button class="btn access-button form-btn" style="padding: 2px 10px;box-shadow: none;" title="New Folder" @click="openCreateFolderModal">
+                        <i class="fa fa-plus mr-2" aria-hidden="true"></i>New Folder
+                    </button>
+                    <button class="btn access-button form-btn" style="padding: 2px 10px;box-shadow: none;" title="Remove Folder" @click="showHideDeleteOption">
+                        <i class="fa fa-trash mr-2" aria-hidden="true"></i>Remove Folder
+                    </button>
                     <button v-if="folderNavigationArray.length" type="button"
                             class="btn access-button form-btn"
                             style="padding: 2px 10px;box-shadow: none;"
@@ -218,19 +224,19 @@
                     <!--<li>
                         <a class="link-btn" title="Upload Files"><i class="fa fa-upload mr-2" aria-hidden="true"></i>Upload Documents</a>
                     </li>-->
-                    <li>
+                    <!-- <li>
                         <a class="link-btn" title="New Folder" @click="openCreateFolderModal"><i class="fa fa-folder-o mr-2" aria-hidden="true"></i>New Folder</a>
-                    </li>
+                    </li> -->
                     <li>
                         <a class="link-btn" title="User Signatures" @click="showHideUserSignatures"><i class="fa fa-edit mr-2" aria-hidden="true"></i>User Signatures</a>
                         <ul v-if="userSignatures">
                             <li><a class="link-btn" title="New Signature" @click="createNewSignature"><i class="fa fa-edit mr-2" aria-hidden="true"></i>New Signature</a></li>
                             <li><a title="Upload Signature" class="link-btn" @click="uploadSignature"><i aria-hidden="true" class="fa fa-upload mr-2"></i>Upload Signature.</a></li>
                         </ul>
-                    </li>
+                    <!-- </li>
                     <li v-if="!showDeleteButton && folders.length" class="mt-3">
                         <a class="link-btn color-red" title="New Folder" @click="showHideDeleteOption"><i class="fa fa-trash mr-2" aria-hidden="true"></i>Remove Folder</a>
-                    </li>
+                    </li> -->
                     <li v-if="showDeleteButton && folders.length" class="mt-3">
                         <a class="link-btn color-red" title="New Folder" @click="showHideDeleteOption"><i class="fa fa-times-circle mr-2" aria-hidden="true"></i>Cancel Remove</a>
                     </li>

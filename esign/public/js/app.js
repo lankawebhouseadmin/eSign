@@ -48176,7 +48176,7 @@ var content = __webpack_require__(52);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(6)("171dcae0", content, false, {});
+var update = __webpack_require__(6)("4f7945f0", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -48373,7 +48373,7 @@ var content = __webpack_require__(58);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(6)("0f0db792", content, false, {});
+var update = __webpack_require__(6)("cf83e5ec", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -48508,6 +48508,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vue2_dropzone_dist_vue2Dropzone_min_css__ = __webpack_require__(66);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vue2_dropzone_dist_vue2Dropzone_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_vue2_dropzone_dist_vue2Dropzone_min_css__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vue_signature_pad__ = __webpack_require__(18);
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -57190,6 +57196,40 @@ var render = function() {
               [_vm._v("\n                    My Documents\n                ")]
             ),
             _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn access-button form-btn",
+                staticStyle: { padding: "2px 10px", "box-shadow": "none" },
+                attrs: { title: "New Folder" },
+                on: { click: _vm.openCreateFolderModal }
+              },
+              [
+                _c("i", {
+                  staticClass: "fa fa-plus mr-2",
+                  attrs: { "aria-hidden": "true" }
+                }),
+                _vm._v("New Folder\n                ")
+              ]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn access-button form-btn",
+                staticStyle: { padding: "2px 10px", "box-shadow": "none" },
+                attrs: { title: "Remove Folder" },
+                on: { click: _vm.showHideDeleteOption }
+              },
+              [
+                _c("i", {
+                  staticClass: "fa fa-trash mr-2",
+                  attrs: { "aria-hidden": "true" }
+                }),
+                _vm._v("Remove Folder\n                ")
+              ]
+            ),
+            _vm._v(" "),
             _vm.folderNavigationArray.length
               ? _c(
                   "button",
@@ -57529,24 +57569,6 @@ var render = function() {
                   "a",
                   {
                     staticClass: "link-btn",
-                    attrs: { title: "New Folder" },
-                    on: { click: _vm.openCreateFolderModal }
-                  },
-                  [
-                    _c("i", {
-                      staticClass: "fa fa-folder-o mr-2",
-                      attrs: { "aria-hidden": "true" }
-                    }),
-                    _vm._v("New Folder")
-                  ]
-                )
-              ]),
-              _vm._v(" "),
-              _c("li", [
-                _c(
-                  "a",
-                  {
-                    staticClass: "link-btn",
                     attrs: { title: "User Signatures" },
                     on: { click: _vm.showHideUserSignatures }
                   },
@@ -57599,27 +57621,6 @@ var render = function() {
                     ])
                   : _vm._e()
               ]),
-              _vm._v(" "),
-              !_vm.showDeleteButton && _vm.folders.length
-                ? _c("li", { staticClass: "mt-3" }, [
-                    _c(
-                      "a",
-                      {
-                        staticClass: "link-btn color-red",
-                        attrs: { title: "New Folder" },
-                        on: { click: _vm.showHideDeleteOption }
-                      },
-                      [
-                        _c("i", {
-                          staticClass: "fa fa-trash mr-2",
-                          attrs: { "aria-hidden": "true" }
-                        }),
-                        _vm._v("Remove Folder")
-                      ]
-                    )
-                  ])
-                : _vm._e(),
-              _vm._v(" "),
               _vm.showDeleteButton && _vm.folders.length
                 ? _c("li", { staticClass: "mt-3" }, [
                     _c(
@@ -58276,7 +58277,7 @@ var content = __webpack_require__(77);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(6)("b52068c4", content, false, {});
+var update = __webpack_require__(6)("6938202b", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags

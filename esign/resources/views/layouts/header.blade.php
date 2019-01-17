@@ -31,7 +31,7 @@ $url = $subUrl[0];
             </a>
             <div class="menu-text">Upload Document</div>
         </div>
-        <div class="menu-wrapper" align="center">
+        <!-- <div class="menu-wrapper" align="center">
             <a href="{{ route('home') }}" class="circle" align="center">
                 <img class="icon-head" src="{{ asset('assets/image/menu-icons/sign-document.png') }}">
             </a>
@@ -84,7 +84,7 @@ $url = $subUrl[0];
                 <img class="icon-head" src="{{ asset('assets/image/menu-icons/message.png') }}">
             </a>
             <div class="menu-text">New Message</div>
-        </div>
+        </div> -->
 
         <div class="menu-wrapper" align="center">
             <a href="{{ route('home') }}" class="circle" align="center">

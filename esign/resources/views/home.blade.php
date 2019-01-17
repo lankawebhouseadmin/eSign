@@ -45,7 +45,7 @@
                             <h4 class="title-text">Quick Access</h4>
                         </div>
                         <div class="d-flex justify-content-between quick-buttons">
-                            <a href="#" class="btn access-button main-btn">Upload Document</a>
+                            <a href="{{ route('myfiles') }}" class="btn access-button main-btn">Upload Document</a>
                             <a href="#" class="btn access-button main-btn">Sign my Document</a>
                             <a href="#" class="btn access-button main-btn">Get it Signed</a>
                             <a href="#" class="btn access-button main-btn">Send Document</a>

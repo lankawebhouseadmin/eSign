@@ -28,6 +28,8 @@ class HomeController extends Controller
         $this->setSession();
         return view('home');
     }
+
+    
     public function myfiles()
     {
         $data = array();
@@ -49,6 +51,8 @@ class HomeController extends Controller
         }
         return view('myfiles',array('session_data'=>$data));
     }
+
+
     public function setSession(){
         $user = Auth::user();
         $userId = $user->id;
