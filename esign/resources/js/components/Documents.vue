@@ -105,7 +105,7 @@
                             style="padding: 2px 10px;box-shadow: none;"
                     @click="getBackToFolders">
                         <i class="fa fa-arrow-left mr-2" aria-hidden="true"></i>Go Back
-                    </button> 
+                    </button>
 
                 </section>
                 <div class="folder-container mt-3">
